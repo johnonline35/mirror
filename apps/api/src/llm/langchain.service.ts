@@ -17,13 +17,8 @@ export class LangchainService {
   private chatModel: ChatOpenAI;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    if (!apiKey) {
-      throw new Error('API key for OpenAI not found');
-    }
-
     this.chatModel = new ChatOpenAI({
-      apiKey: apiKey,
+      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       modelName: 'gpt-3.5-turbo',
       temperature: 0.7,
       maxTokens: 150,
@@ -44,14 +39,13 @@ export class LangchainService {
       embeddings,
     );
 
-    const prompt =
-      ChatPromptTemplate.fromTemplate(`Answer the following question based only on the provided context:
+    const prompt = ChatPromptTemplate.fromTemplate(`
+      Answer the following question based only on the provided context:
+      <context>
+      {context}
+      </context>
 
-<context>
-{context}
-</context>
-
-Question: {input}`);
+      Question: {input}`);
 
     const documentChain = await createStuffDocumentsChain({
       llm: this.chatModel,
