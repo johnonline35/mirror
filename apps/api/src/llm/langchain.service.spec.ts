@@ -26,5 +26,5 @@ describe('LangchainService', () => {
   it('test should correctly call OpenAI service and return a response', async () => {
     const response = await service.test();
     expect(response);
-  });
+  }, 60000);
 });
