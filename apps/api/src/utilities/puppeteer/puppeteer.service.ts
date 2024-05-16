@@ -12,6 +12,7 @@ export class PuppeteerService {
   async launchBrowser(): Promise<Browser> {
     const proxyServer = this.configService.get<string>('SMARTPROXY_SERVER');
     const browser = await puppeteer.launch({
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',

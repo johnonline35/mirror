@@ -73,8 +73,10 @@ export class CrawlerService {
 
     const homePageSummary = await this.extractHomePageData(page);
     console.log(`Home Page Summary: ${homePageSummary}`);
+
+    const strategy = await this.crawlerFactory.getStrategy(homePageSummary);
+    console.log('finished', strategy);
     return null;
-    // const strategy = await this.crawlerFactory.getStrategy(homePageSummary);
     // return strategy.executeStrategy(
     //   crawlRequestDto.url,
     //   browser,

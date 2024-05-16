@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { LlmService } from './langchain.service';
+import { LlmService } from './langchain/langchain.service';
 
 @Controller('llm')
 export class LlmController {

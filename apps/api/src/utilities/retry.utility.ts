@@ -1,4 +1,4 @@
-import * as retry from 'async-retry';
+import retry from 'async-retry';
 
 export type RetryOptions = retry.Options & {
   logLevel?: 'none' | 'error' | 'verbose';

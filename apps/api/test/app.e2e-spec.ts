@@ -15,7 +15,7 @@ describe('CrawlerService (e2e)', () => {
 
   it('should crawl data successfully', async () => {
     const crawlRequestDto = new CrawlRequestDto();
-    crawlRequestDto.url = 'https://spacy.io/';
+    crawlRequestDto.url = 'https://news.ycombinator.com/';
     crawlRequestDto.maxDepth = 0;
 
     const result = await crawlerService.crawlUrl(crawlRequestDto);

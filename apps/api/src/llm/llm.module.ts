@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { LangchainService } from './langchain.service';
+import { LangchainService } from './langchain/langchain.service';
+import { OpenAiService } from './openai/openai.service';
 
 @Module({
-  providers: [LangchainService],
-  exports: [LangchainService],
+  providers: [LangchainService, OpenAiService],
+  exports: [LangchainService, OpenAiService],
 })
 export class LlmModule {}

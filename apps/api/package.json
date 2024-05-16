@@ -36,7 +36,7 @@
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.5",
     "langchain": "^0.1.37",
-    "openai": "^4.45.0",
+    "openai": "^4.47.1",
     "p-retry": "^6.2.0",
     "prisma": "^5.13.0",
     "puppeteer": "^19.7.2",
