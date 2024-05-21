@@ -1,10 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CrawlerStrategy } from './crawler-strategy.type';
 import { OpenAiService } from '../../llm/openai/openai.service';
+import { FallbackStrategy } from './strategies/fallback.strategy';
+import { PuppeteerService } from '../../utilities/puppeteer/puppeteer.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
-export class CrawlerFactoryService {
-  constructor(private openaiService: OpenAiService) {}
+export class CrawlerStrategyFactory {
+  constructor(
+    private fallbackStrategy: FallbackStrategy,
+    private openaiService: OpenAiService,
+    private puppeteerService: PuppeteerService,
+    private prismaService: PrismaService,
+  ) {
+    console.log('PuppeteerService directly in Factory:', this.puppeteerService);
+  }
 
   async getStrategy(homePageSummary: string): Promise<CrawlerStrategy> {
     const messages = [
@@ -38,25 +48,21 @@ ${homePageSummary}
     console.log('Open AI repsonse verbatim:', strategyName);
 
     const normalizedResponse = strategyName.replace(/^['"]|['"]$/g, '').trim();
+    console.log('normalizedRespons', normalizedResponse);
     switch (normalizedResponse) {
-      case 'ecommerce':
-        console.log('OpenAI has chosen EcommerceStrategy()');
-        // return new EcommerceStrategy(); // Example specific strategy
-        break;
-      case 'saas':
-        console.log('OpenAI has chosen SaasStrategy()');
-        // return new SaasStrategy();
-        break;
-      case 'content':
-        console.log('OpenAI has chosen ContentStrategy()');
-        // return new ContentStrategy();
-        break;
+      // case 'ecommerce':
+      //   console.log('OpenAI has chosen EcommerceStrategy()');
+      //   // return new EcommerceStrategy(); // Example specific strategy
+      //   break;
+      // case 'saas':
+      //   console.log('OpenAI has chosen SaasStrategy()');
+      //   // return new SaasStrategy();
+      //   break;
+      // case 'other': return this.otherStrategy;
+      //   break;
       default:
-        console.log('OpenAI has chosen FallbackStrategy');
-        // return new FallbackStrategy(this.prismaService, this.puppeteerService);
-        break;
+        console.log('fallbackStrategy:', this.fallbackStrategy);
+        return this.fallbackStrategy;
     }
-
-    return null;
   }
 }

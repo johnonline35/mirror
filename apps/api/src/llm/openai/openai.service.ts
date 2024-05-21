@@ -18,7 +18,7 @@ export class OpenAiService {
         model: 'gpt-4o-2024-05-13',
         messages: messages,
         max_tokens: 50,
-        seed: 12345,
+        temperature: 0,
       });
 
       const result = response.choices[0].message.content.trim();

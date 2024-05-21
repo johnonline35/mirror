@@ -9,14 +9,17 @@ describe('CrawlerService (e2e)', () => {
   let crawlerService: CrawlerService;
 
   beforeEach(async () => {
-    app = await NestFactory.createApplicationContext(AppModule);
-    crawlerService = app.get(CrawlerService);
+    try {
+      app = await NestFactory.createApplicationContext(AppModule);
+      await app.init();
+      crawlerService = app.get(CrawlerService);
+    } catch (error) {
+      console.error('Error during test setup:', error);
+    }
   });
 
   it('should crawl data successfully', async () => {
-    const crawlRequestDto = new CrawlRequestDto();
-    crawlRequestDto.url = 'https://news.ycombinator.com/';
-    crawlRequestDto.maxDepth = 0;
+    const crawlRequestDto = new CrawlRequestDto('https://mirror.ai', 0);
 
     const result = await crawlerService.crawlUrl(crawlRequestDto);
     expect(result).toBeDefined();

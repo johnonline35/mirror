@@ -1,15 +1,21 @@
 import { Module } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { DataPreprocessorModule } from '../data-preprocessor/data-preprocessor.module';
-import { UtilitiesModule } from '../utilities/utilities.module';
-import { CrawlerFactoryService } from '../strategies/crawler/crawler-factory.service';
+import { CrawlerStrategyFactory } from '../strategies/crawler-strategies/crawler-strategy.factory';
 import { OpenAiService } from '../llm/openai/openai.service';
+import { FallbackStrategy } from '../strategies/crawler-strategies/strategies/fallback.strategy';
+import { UtilitiesModule } from '../utilities/utilities.module';
+import { StrategiesModule } from '../strategies/strategies.module';
 // import { CrawlerController } from './crawler.controller';
 
 @Module({
-  imports: [PrismaModule, DataPreprocessorModule, UtilitiesModule],
-  providers: [CrawlerService, CrawlerFactoryService, OpenAiService],
+  imports: [PrismaModule, UtilitiesModule, StrategiesModule],
+  providers: [
+    FallbackStrategy,
+    CrawlerService,
+    CrawlerStrategyFactory,
+    OpenAiService,
+  ],
   exports: [CrawlerService],
 })
 export class CrawlerModule {}

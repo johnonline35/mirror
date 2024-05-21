@@ -7,6 +7,6 @@ import { PrismaModule } from '../../prisma/prisma.module';
   imports: [PrismaModule],
   // controllers: [DataPreprocessorController],
   providers: [DataPreprocessorService],
-  exports: [DataPreprocessorService],
+  // exports: [DataPreprocessorService],
 })
 export class DataPreprocessorModule {}

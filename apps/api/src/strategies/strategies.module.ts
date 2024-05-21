@@ -1,8 +1,18 @@
 import { Module } from '@nestjs/common';
-import { CrawlerStrategiesModule } from './crawler/crawler-strategy.module';
+import { CrawlerStrategyFactory } from './crawler-strategies/crawler-strategy.factory';
+import { OpenAiService } from '../llm/openai/openai.service';
+import { FallbackStrategy } from './crawler-strategies/strategies/fallback.strategy';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UtilitiesModule } from '../utilities/utilities.module';
 
 @Module({
-  imports: [CrawlerStrategiesModule],
-  exports: [CrawlerStrategiesModule],
+  imports: [UtilitiesModule],
+  providers: [
+    CrawlerStrategyFactory,
+    OpenAiService,
+    FallbackStrategy,
+    PrismaService,
+  ],
+  exports: [CrawlerStrategyFactory, FallbackStrategy],
 })
 export class StrategiesModule {}

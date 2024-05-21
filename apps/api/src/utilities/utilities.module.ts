@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
+import { CheerioService } from './cheerio/cheerio.service';
 
+@Global()
 @Module({
-  providers: [PuppeteerService],
-  exports: [PuppeteerService],
+  providers: [PuppeteerService, CheerioService],
+  exports: [PuppeteerService, CheerioService],
 })
 export class UtilitiesModule {}
