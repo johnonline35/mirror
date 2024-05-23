@@ -2,10 +2,15 @@ import { Browser } from 'puppeteer';
 import { PuppeteerService } from '../../../utilities/puppeteer/puppeteer.service';
 import { CheerioService } from '../../../utilities/cheerio/cheerio.service';
 import { CrawlRequestDto } from '../../../crawler/dto/CrawlRequestDto.dto';
-import { CrawlerStrategy, StrategyContext } from '../crawler-strategy.type';
+import {
+  CrawlerStrategy,
+  StrategyContext,
+} from '../crawler-strategy.interface';
 import { retryOperation, RetryOptions } from '../../../utilities/retry.utility';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class FallbackStrategy implements CrawlerStrategy {
   private urlQueue: [string, number][] = [];
   private visitedUrls = new Set<string>();
@@ -16,12 +21,9 @@ export class FallbackStrategy implements CrawlerStrategy {
     private prismaService: PrismaService,
     private puppeteerService: PuppeteerService,
     private cheerioService: CheerioService,
-  ) {
-    console.log('FallbackStrategy instantiated:', new Date().toISOString());
-    console.log('PuppeteerService available:', puppeteerService !== undefined);
-  }
+  ) {}
 
-  async executeStrategy(context: StrategyContext): Promise<any> {
+  async execute(context: StrategyContext): Promise<any> {
     const { crawlRequestDto, page, currentDepth = 0 } = context;
     console.log(
       `Executing strategy for URL: ${crawlRequestDto.url} with depth limit: ${crawlRequestDto.maxDepth}`,
@@ -46,14 +48,10 @@ export class FallbackStrategy implements CrawlerStrategy {
   async crawlUrl(crawlRequestDto: CrawlRequestDto): Promise<any[]> {
     console.log(`Starting to crawl URL: ${crawlRequestDto.url}`);
 
-    console.log(
-      'About to launch browser with puppeteerService:',
-      this.puppeteerService,
-    );
     if (!this.puppeteerService) {
-      console.error('PuppeteerService is not initialized');
       throw new Error('PuppeteerService is not initialized');
     }
+
     const browser = await this.puppeteerService.launchBrowser();
     const crawlResults = [];
 
@@ -137,6 +135,8 @@ export class FallbackStrategy implements CrawlerStrategy {
     const links = $('a')
       .map((_, link) => $(link).attr('href'))
       .get();
+
+    console.log('Links:', links);
 
     links.forEach((link) => {
       if (link && this.isInternal(link, url) && currentDepth < maxDepth) {

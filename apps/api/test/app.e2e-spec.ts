@@ -19,11 +19,11 @@ describe('CrawlerService (e2e)', () => {
   });
 
   it('should crawl data successfully', async () => {
-    const crawlRequestDto = new CrawlRequestDto('https://mirror.ai', 0);
+    const crawlRequestDto = new CrawlRequestDto('https://www.neosync.dev/', 1);
 
     const result = await crawlerService.crawlUrl(crawlRequestDto);
     expect(result).toBeDefined();
-  }, 60000);
+  }, 300000);
 
   afterEach(async () => {
     await app.close();

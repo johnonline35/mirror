@@ -8,5 +8,5 @@ export interface StrategyContext {
 }
 
 export interface CrawlerStrategy {
-  executeStrategy(context: StrategyContext): Promise<any>;
+  execute(context: StrategyContext): Promise<any>;
 }

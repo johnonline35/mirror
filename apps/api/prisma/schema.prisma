@@ -21,3 +21,16 @@ model Job {
   data     Json?
 }
 
+model TokenUsage {
+  id               Int      @id @default(autoincrement())
+  endpoint         String
+  request_tokens   Int
+  response_tokens  Int
+  total_tokens     Int
+  request_content  String
+  response_content String
+  options          String   
+  duration         Int      
+  createdAt        DateTime @default(now())
+}
+

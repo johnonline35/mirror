@@ -1,22 +1,13 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as puppeteer from 'puppeteer';
 import { Browser, Page } from 'puppeteer';
 
 export { Browser, Page };
 
-@Injectable({ scope: Scope.DEFAULT })
+@Injectable()
 export class PuppeteerService {
-  constructor(private configService: ConfigService) {
-    console.log('PuppeteerService instantiated:', new Date().toISOString());
-  }
-
-  onModuleInit() {
-    console.log(
-      'PuppeteerService available on init:',
-      PuppeteerService !== undefined,
-    );
-  }
+  constructor(private configService: ConfigService) {}
 
   async launchBrowser(): Promise<Browser> {
     const proxyServer = this.configService.get<string>('SMARTPROXY_SERVER');
