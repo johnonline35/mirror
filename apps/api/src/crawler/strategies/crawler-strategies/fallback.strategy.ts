@@ -1,7 +1,7 @@
 import { Browser } from 'puppeteer';
 import { PuppeteerService } from '../../../utilities/puppeteer/puppeteer.service';
 import { CheerioService } from '../../../utilities/cheerio/cheerio.service';
-import { CrawlRequestDto } from '../../../crawler/dto/CrawlRequestDto.dto';
+import { CrawlRequestDto } from '../../dto/CrawlRequestDto.dto';
 import {
   CrawlerStrategy,
   StrategyContext,
@@ -83,7 +83,7 @@ export class FallbackStrategy implements CrawlerStrategy {
             console.error(
               `Crawling failed for URL: ${url} with error: ${error}`,
             );
-            // Optionally handle specific failures per URL
+            // TODO handle specific failures per URL
           }
         }
       }

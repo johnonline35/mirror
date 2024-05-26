@@ -1,4 +1,5 @@
 import { BaseTemplate } from './baseTemplate';
+import { CategoryClassificationTemplate } from './classification/categoryClassificationTemplate';
 import { HomePageSummarizationTemplate } from './summarization/contentSummarizationTemplate';
 
 export class TemplateFactory {
@@ -6,7 +7,8 @@ export class TemplateFactory {
     switch (type) {
       case 'HOMEPAGE_SUMMARIZATION':
         return HomePageSummarizationTemplate.create(version);
-      // Add other cases for different templates
+      case 'CLASSIFICATION':
+        return CategoryClassificationTemplate.create(version);
       default:
         throw new Error(`Unknown template type: ${type}`);
     }

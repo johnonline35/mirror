@@ -1,4 +1,4 @@
-import { CrawlRequestDto } from '../../crawler/dto/CrawlRequestDto.dto';
+import { CrawlRequestDto } from '../dto/CrawlRequestDto.dto';
 import { Page } from '../../utilities/puppeteer/puppeteer.service';
 
 export interface StrategyContext {

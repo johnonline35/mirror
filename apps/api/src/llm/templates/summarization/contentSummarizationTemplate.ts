@@ -27,16 +27,32 @@ const HOMEPAGE_SUMMARIZATION_TEMPLATE_V2 = `
   ]
 `;
 
+const HOMEPAGE_SUMMARIZATION_TEMPLATE_V3 = `
+  [
+    {
+  "role": "system",
+  "content": "You are a helpful assistant that is able to understand the context of a web page and provide a concise summary of its content. Additionally, highlight the core business features and clearly identify the revenue model in a single word (e.g., SaaS, ecommerce, advertising)."
+},
+{
+  "role": "user",
+  "content": "Please summarize the following content in a concise and meaningful way, and identify the business model in one word: {{text}}"
+}
+  ]
+`;
+
 // Version constants
 const VERSIONS = {
   HOMEPAGE_SUMMARIZATION: '1.0',
   HOMEPAGE_SUMMARIZATION_V2: '2.0',
+  HOMEPAGE_SUMMARIZATION_TEMPLATE_V3: '3.0',
 };
 
 // Template registry
 const TEMPLATE_REGISTRY = {
   [VERSIONS.HOMEPAGE_SUMMARIZATION]: HOMEPAGE_SUMMARIZATION_TEMPLATE_V1,
   [VERSIONS.HOMEPAGE_SUMMARIZATION_V2]: HOMEPAGE_SUMMARIZATION_TEMPLATE_V2,
+  [VERSIONS.HOMEPAGE_SUMMARIZATION_TEMPLATE_V3]:
+    HOMEPAGE_SUMMARIZATION_TEMPLATE_V3,
 };
 
 // Template class

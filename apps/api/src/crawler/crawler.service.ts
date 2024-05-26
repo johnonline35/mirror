@@ -2,13 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CrawlRequestDto } from './dto/CrawlRequestDto.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as cheerio from 'cheerio';
-import { CrawlerStrategyFactory } from '../strategies/crawler-strategies/crawler-strategy.factory';
+import { CrawlerStrategyFactory } from './strategies/crawler-strategy.factory';
 import {
   PuppeteerService,
   Page,
 } from '../utilities/puppeteer/puppeteer.service';
 import { retryOperation, RetryOptions } from '../utilities/retry.utility';
-import { StrategyContext } from '../strategies/crawler-strategies/crawler-strategy.interface';
+import { StrategyContext } from './strategies/crawler-strategy.interface';
+import { TemplatesService } from '../llm/templates/templates.service';
+import { AdaptersService } from '../llm/adapters/adapters.service';
 
 @Injectable()
 export class CrawlerService {
@@ -18,6 +20,8 @@ export class CrawlerService {
     private prisma: PrismaService,
     private crawlerFactory: CrawlerStrategyFactory,
     private puppeteerService: PuppeteerService,
+    private templatesService: TemplatesService,
+    private adaptersService: AdaptersService,
   ) {}
 
   async crawlUrl(crawlRequestDto: CrawlRequestDto): Promise<any> {
@@ -88,7 +92,7 @@ export class CrawlerService {
 
   private async extractHomePageData(page: Page): Promise<string> {
     const html = await page.content();
-    this.logger.log(`Raw HTML content: ${html}`);
+    // this.logger.log(`Raw HTML content: ${html}`);
 
     const $ = cheerio.load(html);
 
@@ -111,7 +115,7 @@ export class CrawlerService {
     // Clean up the white space
     cleanedText = cleanedText.replace(/\s+/g, ' ').trim();
 
-    const summary = `The raw text from the homepage html with basic style, svg, path, meta tags removed is: "${cleanedText}"`;
+    const summary = `The text from the homepage: "${cleanedText}"`;
 
     this.logger.log(`Extracted and cleaned homepage data: ${summary}`);
     return summary;

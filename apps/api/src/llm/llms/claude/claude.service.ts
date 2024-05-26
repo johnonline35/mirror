@@ -14,6 +14,10 @@ export class ClaudeService implements LLM {
     });
   }
 
+  adapt(prompt: string, options?: LLMOptions) {
+    throw new Error('Method not implemented.');
+  }
+
   async createCompletion(
     messages: any[],
     options: LLMOptions = {},

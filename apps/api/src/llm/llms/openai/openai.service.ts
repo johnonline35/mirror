@@ -27,7 +27,7 @@ export class OpenAiService implements LLM {
   }
 
   adapt(prompt: string, options?: LLMOptions) {
-    throw new Error('Method not implemented.');
+    return this.createCompletion([{ role: 'user', content: prompt }], options);
   }
 
   async createCompletion(

@@ -11,7 +11,7 @@ export abstract class BaseTemplate {
     this.version = version;
   }
 
-  generate(data: Record<string, any>): string {
+  render(data: Record<string, any>): string {
     const compiledTemplate = compile(this.template);
     return compiledTemplate(data);
   }
