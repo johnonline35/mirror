@@ -9,8 +9,6 @@ import {
 } from '../utilities/puppeteer/puppeteer.service';
 import { retryOperation, RetryOptions } from '../utilities/retry.utility';
 import { StrategyContext } from './strategies/crawler-strategy.interface';
-import { TemplatesService } from '../llm/templates/templates.service';
-import { AdaptersService } from '../llm/adapters/adapters.service';
 
 @Injectable()
 export class CrawlerService {
@@ -20,8 +18,6 @@ export class CrawlerService {
     private prisma: PrismaService,
     private crawlerFactory: CrawlerStrategyFactory,
     private puppeteerService: PuppeteerService,
-    private templatesService: TemplatesService,
-    private adaptersService: AdaptersService,
   ) {}
 
   async crawlUrl(crawlRequestDto: CrawlRequestDto): Promise<any> {
@@ -51,7 +47,7 @@ export class CrawlerService {
       retries: 3,
       factor: 2,
       minTimeout: 1000,
-      maxTimeout: 30000,
+      maxTimeout: 60000,
       logLevel: 'verbose',
       customErrorHandler: (error) => {
         this.logger.error('Encountered an error:', error);
@@ -71,7 +67,7 @@ export class CrawlerService {
     this.logger.log(`Navigating to URL: ${crawlRequestDto.url}`);
     await page.goto(crawlRequestDto.url, {
       waitUntil: 'networkidle0',
-      timeout: 30000,
+      timeout: 60000,
     });
 
     const extractedHomePage = await this.extractHomePageData(page);

@@ -8,13 +8,14 @@ import {
 } from '../crawler-strategy.interface';
 import { retryOperation, RetryOptions } from '../../../utilities/retry.utility';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class FallbackStrategy implements CrawlerStrategy {
+  private readonly logger = new Logger(FallbackStrategy.name);
   private urlQueue: [string, number][] = [];
   private visitedUrls = new Set<string>();
-  private externalLinks = new Set<string>();
+  private externalLinks = new Map<string, string>();
   private urlDepthMap = new Map<string, number>();
 
   constructor(
@@ -25,19 +26,26 @@ export class FallbackStrategy implements CrawlerStrategy {
 
   async execute(context: StrategyContext): Promise<any> {
     const { crawlRequestDto, page, currentDepth = 0 } = context;
-    console.log(
+    this.logger.log(
       `Executing strategy for URL: ${crawlRequestDto.url} with depth limit: ${crawlRequestDto.maxDepth}`,
     );
 
-    // Example usage of page, such as checking if the page is accessible or loading initial data
     const isAccessible = await page
-      .goto(crawlRequestDto.url, { waitUntil: 'domcontentloaded' })
+      .goto(crawlRequestDto.url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      }) // Increased timeout
       .then(
         () => true,
-        () => false,
+        (error) => {
+          this.logger.error(
+            `Failed to access URL: ${crawlRequestDto.url}`,
+            error,
+          );
+          return false;
+        },
       );
     if (!isAccessible) {
-      console.error('Failed to access URL:', crawlRequestDto.url);
       return []; // Returning empty result or handling error appropriately
     }
 
@@ -46,7 +54,7 @@ export class FallbackStrategy implements CrawlerStrategy {
   }
 
   async crawlUrl(crawlRequestDto: CrawlRequestDto): Promise<any[]> {
-    console.log(`Starting to crawl URL: ${crawlRequestDto.url}`);
+    this.logger.log(`Starting to crawl URL: ${crawlRequestDto.url}`);
 
     if (!this.puppeteerService) {
       throw new Error('PuppeteerService is not initialized');
@@ -58,6 +66,7 @@ export class FallbackStrategy implements CrawlerStrategy {
     try {
       while (this.urlQueue.length > 0) {
         const [url, depth] = this.urlQueue.shift();
+        this.logger.log(`URL Queue Length: ${this.urlQueue.length}`);
         if (!this.visitedUrls.has(url) && depth <= crawlRequestDto.maxDepth) {
           this.visitedUrls.add(url);
           const retryOptions: RetryOptions = {
@@ -66,8 +75,8 @@ export class FallbackStrategy implements CrawlerStrategy {
             maxTimeout: 30000,
             factor: 2,
             onRetry: (error, attemptNumber) => {
-              console.log(
-                `Attempt ${attemptNumber} failed. There are ${3 - attemptNumber} retries left.`,
+              this.logger.log(
+                `Attempt ${attemptNumber} failed with error: ${error}. There are ${3 - attemptNumber} retries left.`,
               );
             },
           };
@@ -77,10 +86,10 @@ export class FallbackStrategy implements CrawlerStrategy {
                 this.crawlPage(url, browser, depth, crawlRequestDto.maxDepth),
               retryOptions,
             );
-            crawlResults.push(result, depth);
-            console.log(`Crawling completed for URL: ${url}`);
+            crawlResults.push(result);
+            this.logger.log(`Crawling completed for URL: ${url}`);
           } catch (error) {
-            console.error(
+            this.logger.log(
               `Crawling failed for URL: ${url} with error: ${error}`,
             );
             // TODO handle specific failures per URL
@@ -88,7 +97,7 @@ export class FallbackStrategy implements CrawlerStrategy {
         }
       }
     } catch (error) {
-      console.error(`Crawl failed`, error);
+      this.logger.log(`Crawl failed`, error);
       throw error;
     } finally {
       await browser.close();
@@ -103,14 +112,18 @@ export class FallbackStrategy implements CrawlerStrategy {
     maxDepth: number,
   ): Promise<any> {
     const page = await this.puppeteerService.createPage(browser);
-    await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
-    const htmlContent = await page.content();
-    await page.close();
-
-    const processedContent = this.processContent(htmlContent);
-    this.processLinks(htmlContent, url, currentDepth, maxDepth);
-
-    return processedContent;
+    try {
+      await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 }); // Increased timeout
+      const htmlContent = await page.content();
+      const processedContent = this.processContent(htmlContent);
+      this.processLinks(htmlContent, url, currentDepth, maxDepth);
+      await page.close();
+      return processedContent;
+    } catch (error) {
+      this.logger.error(`Failed to crawl page at URL: ${url}`, error);
+      await page.close();
+      throw error;
+    }
   }
 
   private isInternal(link: string, baseUrl: string): boolean {
@@ -119,10 +132,27 @@ export class FallbackStrategy implements CrawlerStrategy {
 
   private processContent(htmlContent: string): string {
     const $ = this.cheerioService.load(htmlContent);
-    $('script, link[rel="stylesheet"], style, svg, path, meta').remove();
-    $('*').removeAttr('style');
-    console.log('Processed content:', $.html());
-    return $.html();
+    $(
+      'script, link[rel="stylesheet"], style, svg, path, meta, noscript, iframe, object, embed',
+    ).remove();
+
+    // Remove style attributes
+    $('[style]').removeAttr('style');
+
+    // Remove empty elements
+    $('*')
+      .filter((_, el) => !$(el).html().trim())
+      .remove();
+
+    // Extract text content
+    let cleanedText = $('body').text().trim();
+
+    // Clean up the white space
+    cleanedText = cleanedText.replace(/\s+/g, ' ').trim();
+
+    this.logger.log(`The text from the page: "${cleanedText}"`);
+
+    return cleanedText;
   }
 
   private processLinks(
@@ -133,16 +163,23 @@ export class FallbackStrategy implements CrawlerStrategy {
   ): void {
     const $ = this.cheerioService.load(htmlContent);
     const links = $('a')
-      .map((_, link) => $(link).attr('href'))
+      .map((_, link) => {
+        const href = $(link).attr('href');
+        const text = $(link).text().trim();
+        return { href, text };
+      })
       .get();
 
-    console.log('Links:', links);
+    this.logger.log('Links:', links);
 
     links.forEach((link) => {
-      if (link && this.isInternal(link, url) && currentDepth < maxDepth) {
-        this.enqueueUrl(link, currentDepth + 1); // Enqueue deeper internal links
-      } else {
-        this.externalLinks.add(link); // Collect external links
+      if (link.href) {
+        const absoluteUrl = new URL(link.href, url).toString();
+        if (this.isInternal(absoluteUrl, url) && currentDepth < maxDepth) {
+          this.enqueueUrl(absoluteUrl, currentDepth + 1); // Enqueue deeper internal links
+        } else {
+          this.externalLinks.set(absoluteUrl, link.text); // Collect external links with text
+        }
       }
     });
   }
@@ -151,7 +188,8 @@ export class FallbackStrategy implements CrawlerStrategy {
     if (!this.visitedUrls.has(url)) {
       this.urlQueue.push([url, depth]);
       this.urlDepthMap.set(url, depth);
-      console.log(`Enqueued new URL: ${url} at depth ${depth}`);
+      this.logger.log(`Enqueued new URL: ${url} at depth ${depth}`);
+      this.logger.log(`Current URL Queue Length: ${this.urlQueue.length}`);
     }
   }
 }
