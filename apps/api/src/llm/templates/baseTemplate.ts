@@ -17,7 +17,7 @@ export abstract class BaseTemplate {
   }
 
   validate(): boolean {
-    // Add validation logic if needed
+    // TODO add validation logic
     return true;
   }
 

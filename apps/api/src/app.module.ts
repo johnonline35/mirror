@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,7 +8,6 @@ import { LlmModule } from './llm/llm.module';
 import { UtilitiesModule } from './utilities/utilities.module';
 import { CommonModule } from './common/common.module';
 import { AgentsModule } from './agents/agents.module';
-import { LoggingMiddleware } from './common/middlewares/logging.middleware';
 import { WorkflowsModule } from './workflows/workflows.module';
 
 @Module({
@@ -30,10 +29,4 @@ import { WorkflowsModule } from './workflows/workflows.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggingMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
-}
+export class AppModule {}
