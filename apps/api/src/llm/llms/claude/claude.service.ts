@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
-import { LLM, LLMOptions } from '../../llm.interface';
+import { LLM, LLMOptions } from '../../../interfaces/llm.interface';
 import { AnthropicModels } from '../../llm.models';
 
 @Injectable()

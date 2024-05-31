@@ -1,6 +1,6 @@
 import { compile } from 'handlebars';
 import { AdapterFactory } from '../adapters/adapterFactory';
-import { LLMOptions } from '../llm.interface';
+import { LLMOptions } from '../../interfaces/llm.interface';
 
 export abstract class BaseTemplate {
   protected template: string;

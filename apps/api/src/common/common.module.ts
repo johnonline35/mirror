@@ -4,8 +4,11 @@ import { CustomLoggerService } from './logger/custom-logger.service';
 import { LoggingMiddleware } from './middlewares/logging.middleware';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { RedisCacheModule } from './caching/redis-cache/redis-cache.module';
+import { ConfigModule } from '../config/config.module';
 
 @Module({
+  imports: [RedisCacheModule, ConfigModule],
   providers: [
     CustomLoggerService,
     {
@@ -17,10 +20,10 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
       useClass: AllExceptionsFilter,
     },
   ],
-  exports: [CustomLoggerService],
+  exports: [CustomLoggerService, RedisCacheModule],
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware).forRoutes('*'); // Apply to all routes
+    consumer.apply(LoggingMiddleware).forRoutes('*');
   }
 }

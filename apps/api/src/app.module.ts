@@ -2,13 +2,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CrawlerModule } from './crawler/crawler.module';
-import { StrategiesModule } from './crawler/strategies/strategies.module';
+import { CrawlerModule } from './tools/crawler/crawler.module';
+import { StrategiesModule } from './tools/crawler/strategies/strategies.module';
 import { LlmModule } from './llm/llm.module';
 import { UtilitiesModule } from './utilities/utilities.module';
 import { CommonModule } from './common/common.module';
 import { AgentsModule } from './agents/agents.module';
-import { WorkflowsModule } from './workflows/workflows.module';
+import { TaskDispatcherService } from './task-dispatcher/task-dispatcher.service';
+import { TaskDispatcherModule } from './task-dispatcher/task-dispatcher.module';
+import { WorkflowModule } from './workflow/workflow.module';
+import { JobManagerService } from './job-manager/job-manager.service';
+import { JobManagerModule } from './job-manager/job-manager.module';
+import { StructuredDataModule } from './structured-data/structured-data.module';
 
 @Module({
   imports: [
@@ -24,9 +29,12 @@ import { WorkflowsModule } from './workflows/workflows.module';
     CommonModule,
     AgentsModule,
     ConfigModule,
-    WorkflowsModule,
+    WorkflowModule,
+    TaskDispatcherModule,
+    JobManagerModule,
+    StructuredDataModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, TaskDispatcherService, JobManagerService],
 })
 export class AppModule {}

@@ -7,7 +7,7 @@ import {
   ChatCompletionFunctionCallOption,
 } from 'openai/resources';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { LLM, LLMOptions } from '../../llm.interface';
+import { LLM, LLMOptions } from '../../../interfaces/llm.interface';
 
 export type ChatCompletionTool = OpenAIChatCompletionTool;
 export { ChatCompletionMessageParam, ChatCompletionFunctionCallOption };

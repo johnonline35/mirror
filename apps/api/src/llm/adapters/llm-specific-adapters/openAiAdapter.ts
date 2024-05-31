@@ -1,5 +1,5 @@
 import { LLMAdapter } from '../llmAdapter';
-import { LLMOptions } from '../../llm.interface';
+import { LLMOptions } from '../../../interfaces/llm.interface';
 
 export class OpenAiAdapter implements LLMAdapter {
   adapt(prompt: string, options?: LLMOptions): any {
