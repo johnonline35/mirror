@@ -11,13 +11,3 @@ export interface TaskDetails {
   url?: string;
   schema?: any;
 }
-
-export interface StructuredDataDetails extends TaskDetails {
-  prompt: string;
-  url: string;
-  schema: any;
-}
-
-export interface ReviewTask extends ITask {
-  reviewCriteria: string[];
-}

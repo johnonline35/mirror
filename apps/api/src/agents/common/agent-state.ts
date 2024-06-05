@@ -5,27 +5,37 @@ export class AgentState<TContext> {
 
   constructor(public context: TContext) {}
 
-  get initialized() {
+  get initialized(): boolean {
     return this._initialized;
   }
 
-  get executed() {
+  get executed(): boolean {
     return this._executed;
   }
 
-  get error() {
+  get error(): Error | null {
     return this._error;
   }
 
-  setInitialized() {
+  setInitialized(): void {
     this._initialized = true;
   }
 
-  setExecuted() {
+  setExecuted(): void {
     this._executed = true;
   }
 
-  setError(error: Error) {
+  setError(error: Error): void {
     this._error = error;
+  }
+
+  clearError(): void {
+    this._error = null;
+  }
+
+  resetState(): void {
+    this._initialized = false;
+    this._executed = false;
+    this._error = null;
   }
 }

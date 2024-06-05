@@ -1,22 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { BaseAgentService } from '../common/base-agent.service';
+import { Injectable, Logger } from '@nestjs/common';
 import { OpenAiService } from '../../llm/llms/openai/openai.service';
 import { TemplatesService } from '../../llm/templates/templates.service';
 import { AgentState } from '../common/agent-state';
 import { SummarizationContext } from '../../interfaces/contexts/summarization-context.interface';
 import { ITask } from '../../interfaces/task.interface';
 import { LLMOptions } from '../../interfaces/llm.interface';
+import { IAgent } from '../common/agent.interface';
 
 @Injectable()
-export class WebsiteTypeDetectionAgent extends BaseAgentService<
-  SummarizationContext & ITask
-> {
+export class WebsiteTypeDetectionAgent implements IAgent {
+  state: AgentState<SummarizationContext & ITask>;
+  protected readonly logger = new Logger(WebsiteTypeDetectionAgent.name);
+
   constructor(
     private readonly openAiService: OpenAiService,
     private readonly templatesService: TemplatesService,
-  ) {
-    super(WebsiteTypeDetectionAgent.name);
-  }
+  ) {}
 
   async init(context: SummarizationContext & ITask): Promise<void> {
     this.state = new AgentState(context);

@@ -1,9 +1,8 @@
-// src/workflow/handlers/structured-data-workflow.handler.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { IWorkflowHandler } from '../../interfaces/workflow-handler.interface';
 import { TaskDispatcherService } from '../../task-dispatcher/task-dispatcher.service';
 import { ITask } from '../../interfaces/task.interface';
-import { AgentType } from '../../agents/agent-types.enum';
+import { AgentType } from '../../agents/common/agent-types.enum';
 
 @Injectable()
 export class StructuredDataWorkflowHandler implements IWorkflowHandler {
@@ -19,7 +18,7 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
 
       const validatePrompt = await this.taskDispatcher.dispatch(
         task,
-        AgentType.ReviewPrompt,
+        AgentType.ValidatePromptAgent,
       );
       if (validatePrompt.feedback) {
         this.logger.warn('Invalid prompt:', validatePrompt.feedback);

@@ -5,7 +5,7 @@ import { TemplatesService } from '../llm/templates/templates.service';
 import { AdaptersService } from '../llm/adapters/adapters.service';
 import { WebsiteTypeDetectionAgent } from './types/website-type-detection-agent';
 import { CrawlHomepageService } from '../tools/crawler/crawler.service';
-import { ReviewPromptAgent } from './types/review-prompt-agent';
+import { ValidatePromptAgent } from './types/validate-prompt-agent';
 
 @Module({
   providers: [
@@ -13,8 +13,8 @@ import { ReviewPromptAgent } from './types/review-prompt-agent';
     TemplatesService,
     AdaptersService,
     CrawlHomepageService,
-    ReviewPromptAgent,
+    ValidatePromptAgent,
   ],
-  exports: [WebsiteTypeDetectionAgent],
+  exports: [ValidatePromptAgent, WebsiteTypeDetectionAgent],
 })
 export class AgentsModule {}

@@ -1,5 +1,5 @@
 import { ITask } from './task.interface';
 
 export interface IWorkflowHandler {
-  handle(prompt: ITask): Promise<any>;
+  handle(task: ITask): Promise<any>;
 }
