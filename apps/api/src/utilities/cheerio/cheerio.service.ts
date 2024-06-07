@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import * as cheerio from 'cheerio';
+import { TaskComponents } from '../../interfaces/task.interface';
 
 @Injectable()
-export class CheerioService {
+export class CheerioUtilityService implements TaskComponents {
+  name = 'CheerioUtility';
+  description = 'Parses HTML content';
+  type: 'utility';
   /**
    * Loads HTML and returns the CheerioStatic object for further manipulation.
    * @param html The HTML string to be loaded.

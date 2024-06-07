@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as puppeteer from 'puppeteer';
 import { Browser, Page } from 'puppeteer';
+import { TaskComponents } from '../../interfaces/task.interface';
 
 export { Browser, Page };
 
 @Injectable()
-export class PuppeteerService {
+export class PuppeteerUtilityService implements TaskComponents {
+  name = 'PuppeteerUtility';
+  description = 'Controls headless Chrome for web scraping';
+  type: 'utility';
   constructor(private configService: ConfigService) {}
 
   async launchBrowser(): Promise<Browser> {

@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString, IsUrl, MaxLength } from 'class-validator';
 export class StructuredDataDto {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(255)
+  @MaxLength(500)
   prompt: string;
 
   @IsNotEmpty()
   @IsUrl()
-  @MaxLength(100)
+  @MaxLength(200)
   url: string;
 
   @IsNotEmpty()

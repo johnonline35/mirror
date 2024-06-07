@@ -14,6 +14,9 @@ import { WorkflowModule } from './workflow/workflow.module';
 import { JobManagerService } from './job-manager/job-manager.service';
 import { JobManagerModule } from './job-manager/job-manager.module';
 import { StructuredDataModule } from './structured-data/structured-data.module';
+import { ToolsModule } from './tools/tools.module';
+import { ComponentsRegistryService } from './components-registry/components-registry.service';
+import { ComponentsRegistryModule } from './components-registry/components-registry.module';
 
 @Module({
   imports: [
@@ -33,8 +36,10 @@ import { StructuredDataModule } from './structured-data/structured-data.module';
     TaskDispatcherModule,
     JobManagerModule,
     StructuredDataModule,
+    ToolsModule,
+    ComponentsRegistryModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TaskDispatcherService, JobManagerService],
+  providers: [AppService, TaskDispatcherService, JobManagerService, ComponentsRegistryService],
 })
 export class AppModule {}

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { IWorkflowHandler } from '../../interfaces/workflow-handler.interface';
 import { TaskDispatcherService } from '../../task-dispatcher/task-dispatcher.service';
 import { ITask } from '../../interfaces/task.interface';
-import { AgentType } from '../../agents/common/agent-types.enum';
+import { AgentType } from '../../agents/common/agent-registry';
 
 @Injectable()
 export class StructuredDataWorkflowHandler implements IWorkflowHandler {
@@ -16,13 +16,15 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
         `Handling workflow structured data extraction: ${JSON.stringify(task)}`,
       );
 
-      const validatePrompt = await this.taskDispatcher.dispatch(
+      const promptReview = await this.taskDispatcher.dispatch(
         task,
         AgentType.ValidatePromptAgent,
       );
-      if (validatePrompt.feedback) {
-        this.logger.warn('Invalid prompt:', validatePrompt.feedback);
-        return validatePrompt;
+
+      if (promptReview.feedback) {
+        // Invalid prompt: provide feedback to the user
+        this.logger.warn('Invalid prompt:', promptReview.feedback);
+        return { success: false, feedback: promptReview.feedback };
       }
 
       // Crawled data

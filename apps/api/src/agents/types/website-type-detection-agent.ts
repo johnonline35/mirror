@@ -6,8 +6,10 @@ import { SummarizationContext } from '../../interfaces/contexts/summarization-co
 import { ITask } from '../../interfaces/task.interface';
 import { LLMOptions } from '../../interfaces/llm.interface';
 import { IAgent } from '../common/agent.interface';
+import { AgentType, RegisterAgent } from '../common/agent-registry';
 
 @Injectable()
+@RegisterAgent(AgentType.WebsiteTypeDetectionAgent)
 export class WebsiteTypeDetectionAgent implements IAgent {
   state: AgentState<SummarizationContext & ITask>;
   protected readonly logger = new Logger(WebsiteTypeDetectionAgent.name);
