@@ -2,7 +2,7 @@ import { Models } from './llm.models';
 import { ChatCompletionTool } from './llms/openai/openai.service';
 
 export interface LLM {
-  createCompletion(messages: any[], options?: LLMOptions): Promise<string>;
+  chatCompletion(messages: any[], options?: LLMOptions): Promise<string>;
   adapt(prompt: string, options?: LLMOptions): any;
 }
 

@@ -23,7 +23,7 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
 
       const promptReview = await this.taskDispatcher.dispatch(
         task,
-        AgentType.ValidatePrompt,
+        AgentType.ValidatePromptAgent,
       );
 
       const canCompleteTask =

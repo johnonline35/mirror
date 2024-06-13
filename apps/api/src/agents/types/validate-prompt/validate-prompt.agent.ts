@@ -9,17 +9,17 @@ import { OpenAiService } from '../../../llm/llms/openai/openai.service';
 import { ValidatePromptContext } from './validate-prompt.interface';
 
 @Injectable()
-@RegisterAgent(AgentType.ValidatePrompt)
-export class ValidatePrompt implements IAgent {
+@RegisterAgent(AgentType.ValidatePromptAgent)
+export class ValidatePromptAgent implements IAgent {
   state: AgentState<ValidatePromptContext & ITask>;
-  protected readonly logger = new Logger(ValidatePrompt.name);
+  protected readonly logger = new Logger(ValidatePromptAgent.name);
 
   constructor(
     private readonly templatesService: TemplatesService,
     private readonly openAiService: OpenAiService,
   ) {}
 
-  async initializeAgent(task: ITask): Promise<void> {
+  private async initializeAgent(task: ITask): Promise<void> {
     this.state = new AgentState(task);
     this.state.setInitialized();
     this.logger.log(

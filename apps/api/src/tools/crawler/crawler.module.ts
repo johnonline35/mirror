@@ -11,15 +11,9 @@ import { TemplatesService } from '../../llm/templates/templates.service';
 import { AdaptersService } from '../../llm/adapters/adapters.service';
 import { CommonModule } from '../../common/common.module';
 import { CachingService } from '../../common/caching/redis-cache/redis-cache.service';
-import { ComponentsRegistryModule } from '../../components-registry/components-registry.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    UtilitiesModule,
-    CommonModule,
-    ComponentsRegistryModule,
-  ],
+  imports: [PrismaModule, UtilitiesModule, CommonModule],
   providers: [
     CrawlHomepageService,
     OpenAiService,

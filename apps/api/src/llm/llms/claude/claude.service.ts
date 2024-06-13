@@ -18,7 +18,7 @@ export class ClaudeService implements LLM {
     throw new Error('Method not implemented.');
   }
 
-  async createCompletion(
+  async chatCompletion(
     messages: any[],
     options: LLMOptions = {},
   ): Promise<string> {

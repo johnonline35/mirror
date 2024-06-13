@@ -18,7 +18,7 @@ export function getAllAgents(): Map<AgentType, IAgent> {
 }
 
 export enum AgentType {
-  ValidatePrompt = 'VALIDATE_PROMPT',
-  CrawlHomepage = 'CRAWL_HOMEPAGE',
-  WebsiteTypeDetection = 'WEBSITE_TYPE_DETECTION',
+  ValidatePromptAgent = 'VALIDATE_PROMPT_AGENT',
+  CrawlHomepageAgent = 'CRAWL_HOMEPAGE_AGENT',
+  WebsiteTypeDetectionAgent = 'WEBSITE_TYPE_DETECTION_AGENT',
 }

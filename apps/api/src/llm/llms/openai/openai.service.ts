@@ -27,10 +27,10 @@ export class OpenAiService implements LLM {
   }
 
   adapt(prompt: string, options?: LLMOptions) {
-    return this.createCompletion([{ role: 'user', content: prompt }], options);
+    return this.chatCompletion([{ role: 'user', content: prompt }], options);
   }
 
-  async createCompletion(
+  async chatCompletion(
     messages: any[],
     options: LLMOptions = {},
   ): Promise<string> {
