@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ValidatePromptAgent } from './types/validate-prompt/validate-prompt.agent';
 import { CommonModule } from '../common/common.module';
-import { GetAgentsService } from './agents.service';
 import { LlmModule } from '../llm/llm.module';
 import { ToolsModule } from '../tools/tools.module';
+import { getAgentProviders } from './common/agent-registry';
+import { GetAgentsService } from './agents.service';
 
 @Module({
   imports: [CommonModule, LlmModule, ToolsModule],
-  providers: [ValidatePromptAgent, GetAgentsService],
-  exports: [ValidatePromptAgent, GetAgentsService],
+  providers: [GetAgentsService, ...getAgentProviders()],
+  exports: [GetAgentsService],
 })
 export class AgentsModule {}

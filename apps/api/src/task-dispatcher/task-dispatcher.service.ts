@@ -8,7 +8,7 @@ import { GetAgentsService } from '../agents/agents.service';
 export class TaskDispatcherService {
   private readonly logger = new Logger(TaskDispatcherService.name);
 
-  constructor(private readonly getAgentsService: GetAgentsService) {}
+  constructor(private readonly agentService: GetAgentsService) {}
 
   async dispatch(
     task: ITask,
@@ -29,7 +29,7 @@ export class TaskDispatcherService {
 
   private getAgentForType(agentType: AgentType): IAgent {
     this.logger.log(`Getting agent for type: ${agentType}`);
-    const agent = this.getAgentsService.getAgent(agentType);
+    const agent = this.agentService.getAgent(agentType);
     if (!agent) {
       throw new Error(`Agent not found for type ${agentType}`);
     }

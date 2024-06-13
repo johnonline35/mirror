@@ -1,20 +1,37 @@
-import { IAgent } from './agent.interface';
+import { Provider, Type } from '@nestjs/common';
 
-const agentRegistry = new Map<AgentType, IAgent>();
+const agentRegistry = new Map<AgentType, Type>();
 
 export function RegisterAgent(agentType: AgentType) {
   return function (constructor: any) {
-    const instance = new constructor();
-    agentRegistry.set(agentType, instance);
+    agentRegistry.set(agentType, constructor);
   };
 }
 
-export function getAgent(agentType: AgentType): IAgent {
-  return agentRegistry.get(agentType);
+export function createAgentSymbol(agentType: AgentType) {
+  return `AGENT_${agentType}`;
 }
 
-export function getAllAgents(): Map<AgentType, IAgent> {
-  return agentRegistry;
+export const createAgentRegistrySymbol = () => `AGENT_REGISTRY`;
+
+export function getAgentProviders(): Provider[] {
+  const providers: Provider[] = [];
+
+  const providerKeys: Set<string> = new Set();
+  for (const [type, agent] of agentRegistry.entries()) {
+    providers.push({
+      provide: createAgentSymbol(type),
+      useClass: agent,
+    });
+    providerKeys.add(createAgentSymbol(type));
+  }
+
+  providers.push({
+    provide: createAgentRegistrySymbol(),
+    useValue: providerKeys,
+  });
+
+  return providers;
 }
 
 export enum AgentType {
