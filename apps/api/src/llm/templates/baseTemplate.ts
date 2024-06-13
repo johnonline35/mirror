@@ -1,6 +1,6 @@
 import { compile } from 'handlebars';
 import { AdapterFactory } from '../adapters/adapterFactory';
-import { LLMOptions } from '../../interfaces/llm.interface';
+import { LLMOptions } from '../llm.interface';
 
 export abstract class BaseTemplate {
   protected template: string;
@@ -21,8 +21,8 @@ export abstract class BaseTemplate {
     return true;
   }
 
-  adaptForLLM(llm: string, prompt: string, options: LLMOptions): any {
-    const adapter = AdapterFactory.getAdapter(llm);
+  adaptForLLM(prompt: string, options: LLMOptions): any {
+    const adapter = AdapterFactory.getAdapter(options.model);
     return adapter.adapt(prompt, options);
   }
 

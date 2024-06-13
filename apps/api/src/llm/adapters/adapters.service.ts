@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { LLMOptions } from '../../interfaces/llm.interface';
+import { LLMOptions } from '../llm.interface';
 import { LLMAdapter } from './llmAdapter';
 import { AdapterFactory } from './adapterFactory';
 

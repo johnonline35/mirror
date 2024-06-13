@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import * as cheerio from 'cheerio';
-import { TaskComponents } from '../../interfaces/task.interface';
+import {
+  TaskComponentType,
+  TaskComponents,
+} from '../../../interfaces/task.interface';
+import { TaskComponent } from '../../../components-registry/components-registry.decorator';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
+@TaskComponent(TaskComponentType.UTILITY)
 export class CheerioUtilityService implements TaskComponents {
   name = 'CheerioUtility';
   description = 'Parses HTML content';
-  type: 'utility';
+  type: TaskComponentType = TaskComponentType.UTILITY;
   /**
    * Loads HTML and returns the CheerioStatic object for further manipulation.
    * @param html The HTML string to be loaded.

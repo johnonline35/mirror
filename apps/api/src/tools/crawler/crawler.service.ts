@@ -1,22 +1,22 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject, Scope } from '@nestjs/common';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import {
   PuppeteerUtilityService,
   Page,
-} from '../../utilities/puppeteer/puppeteer.service';
+} from '../../common/utils/puppeteer/puppeteer.service';
 import * as cheerio from 'cheerio';
-import { retryOperation, RetryOptions } from '../../utilities/retry.utility';
-import { ITool } from '../../interfaces/tool.interface';
-import { ITask } from '../../interfaces/task.interface';
+import { retryOperation, RetryOptions } from '../../common/utils/retry.utility';
+import { ITool } from '../tools.interface';
+import { ITask, TaskComponentType } from '../../interfaces/task.interface';
 import { TaskComponent } from '../../components-registry/components-registry.decorator';
 
-@Injectable()
-@TaskComponent('tool')
+@Injectable({ scope: Scope.REQUEST })
+@TaskComponent(TaskComponentType.TOOL)
 export class CrawlHomepageService implements ITool<ITask> {
   name = 'CrawlHomepageService';
   description =
     'Crawls homepage to classify the type of website it is and then extracts data for further decision making and crawling';
-  type: 'tool';
+  type: TaskComponentType = TaskComponentType.TOOL;
 
   private readonly logger = new Logger(CrawlHomepageService.name);
 

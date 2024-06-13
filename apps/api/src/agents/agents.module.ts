@@ -1,20 +1,13 @@
-// src/agents/agents.module.ts
 import { Module } from '@nestjs/common';
-import { OpenAiService } from '../llm/llms/openai/openai.service';
-import { TemplatesService } from '../llm/templates/templates.service';
-import { AdaptersService } from '../llm/adapters/adapters.service';
-import { WebsiteTypeDetectionAgent } from './types/website-type-detection-agent';
-import { CrawlHomepageService } from '../tools/crawler/crawler.service';
-import { ValidatePromptAgent } from './types/validate-prompt-agent';
+import { ValidatePrompt } from './types/validate-prompt/validate-prompt.agent';
+import { CommonModule } from '../common/common.module';
+import { GetAgentsService } from './agents.service';
+import { LlmModule } from '../llm/llm.module';
+import { ToolsModule } from '../tools/tools.module';
 
 @Module({
-  providers: [
-    OpenAiService,
-    TemplatesService,
-    AdaptersService,
-    CrawlHomepageService,
-    ValidatePromptAgent,
-  ],
-  exports: [ValidatePromptAgent, WebsiteTypeDetectionAgent],
+  imports: [CommonModule, LlmModule, ToolsModule],
+  providers: [ValidatePrompt, GetAgentsService],
+  exports: [ValidatePrompt, GetAgentsService],
 })
 export class AgentsModule {}

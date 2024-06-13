@@ -1,11 +1,11 @@
-// src/services/job-manager.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ITask } from '../interfaces/task.interface';
 import { WorkflowService } from '../workflow/workflow.service';
+import { IJobManagerService } from './job-manager-service.interface';
 
 @Injectable()
-export class JobManagerService {
+export class JobManagerService implements IJobManagerService {
   private readonly logger = new Logger(JobManagerService.name);
 
   constructor(
@@ -13,7 +13,7 @@ export class JobManagerService {
     private workflowService: WorkflowService,
   ) {}
 
-  async createJob(task: ITask) {
+  async createJob(task: ITask): Promise<any> {
     this.logger.log(`Creating job for task: ${JSON.stringify(task.details)}`);
     const job = await this.prisma.job.create({
       data: {
@@ -37,7 +37,11 @@ export class JobManagerService {
     }
   }
 
-  async updateJobStatus(jobId: string, status: string, data?: any) {
+  async updateJobStatus(
+    jobId: string,
+    status: string,
+    data?: any,
+  ): Promise<any> {
     this.logger.log(`Updating job status for ${jobId} to ${status}`);
     const dataToUpdate = {
       status,
@@ -57,7 +61,7 @@ export class JobManagerService {
     }
   }
 
-  async getJobStatus(jobId: string) {
+  async getJobStatus(jobId: string): Promise<any> {
     return await this.prisma.job.findUnique({
       where: { jobId },
     });

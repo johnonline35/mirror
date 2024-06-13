@@ -1,5 +1,5 @@
 import { TaskComponents } from '../interfaces/task.interface';
-import { ITask } from './task.interface';
+import { ITask } from '../interfaces/task.interface';
 
 export interface ITool<T extends ITask> extends TaskComponents {
   execute(task: T): Promise<any>;

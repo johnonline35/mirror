@@ -1,10 +1,15 @@
 import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
-import { DiscoveryService } from '@nestjs/core';
+import {
+  ModuleRef,
+  DiscoveryService,
+  Reflector,
+  ContextIdFactory,
+} from '@nestjs/core';
 import {
   TaskComponents,
   TaskComponentType,
 } from '../interfaces/task.interface';
+import { TASK_COMPONENT_METADATA_KEY } from './components-registry.decorator';
 
 @Injectable()
 export class ComponentsRegistryService implements OnModuleInit {
@@ -17,7 +22,10 @@ export class ComponentsRegistryService implements OnModuleInit {
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly discoveryService: DiscoveryService,
-  ) {}
+    private readonly reflector: Reflector,
+  ) {
+    this.logger.log('ComponentsRegistryService instantiated');
+  }
 
   async onModuleInit() {
     this.logger.log('Registering components...');
@@ -26,11 +34,36 @@ export class ComponentsRegistryService implements OnModuleInit {
 
   private async registerComponents() {
     const providers = this.discoveryService.getProviders();
+    this.logger.log(`Found ${providers.length} providers`);
     for (const wrapper of providers) {
       const { instance, metatype } = wrapper;
-      if (instance && this.isTaskComponent(instance)) {
-        const component = await this.moduleRef.resolve(metatype as Type<any>);
-        this.registerComponent(component);
+      if (
+        instance &&
+        metatype &&
+        this.reflector.get(TASK_COMPONENT_METADATA_KEY, metatype)
+      ) {
+        if (this.isTaskComponent(instance)) {
+          try {
+            this.logger.log(
+              `Found TaskComponent: ${instance.name} of type ${instance.type}. Metatype: ${metatype?.name}`,
+            );
+            const contextId = ContextIdFactory.create();
+            this.moduleRef.registerRequestByContextId({}, contextId);
+            const component = await this.moduleRef.resolve(
+              metatype as Type<any>,
+            );
+            this.registerComponent(component);
+          } catch (error) {
+            this.logger.error(
+              `Failed to register TaskComponent: ${instance.name} of type ${instance.type}. Metatype: ${metatype?.name}`,
+              error.stack,
+            );
+          }
+        }
+      } else {
+        this.logger.log(
+          `Skipping provider: ${instance?.constructor?.name || 'unknown'}`,
+        );
       }
     }
   }
@@ -39,7 +72,8 @@ export class ComponentsRegistryService implements OnModuleInit {
     return (
       instance.name &&
       instance.description &&
-      (instance.type === 'tool' || instance.type === 'utility')
+      (instance.type === TaskComponentType.TOOL ||
+        instance.type === TaskComponentType.UTILITY)
     );
   }
 

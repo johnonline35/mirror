@@ -1,5 +1,5 @@
 import { LLMAdapter } from '../llmAdapter';
-import { LLMOptions } from '../../../interfaces/llm.interface';
+import { LLMOptions } from '../../llm.interface';
 
 export class AnthropicAdapter implements LLMAdapter {
   adapt(prompt: string, options: LLMOptions): any {

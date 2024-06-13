@@ -13,7 +13,10 @@ export interface TaskComponents {
   type: TaskComponentType;
 }
 
-export type TaskComponentType = 'tool' | 'utility';
+export enum TaskComponentType {
+  TOOL = 'tool',
+  UTILITY = 'utility',
+}
 
 export interface TaskDetails {
   prompt: string;

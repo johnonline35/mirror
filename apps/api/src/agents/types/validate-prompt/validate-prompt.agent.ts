@@ -1,25 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AgentState } from '../common/agent-state';
-import { ITask } from '../../interfaces/task.interface';
-import { IAgent } from '../common/agent.interface';
-import { RegisterAgent, AgentType } from '../common/agent-registry';
-import { TemplatesService } from '../../llm/templates/templates.service';
-import { LLMOptions } from '../../interfaces/llm.interface';
-import { OpenAiService } from '../../llm/llms/openai/openai.service';
-import { ValidatePromptContext } from './interfaces/validate-prompt-agent.interface';
+import { AgentState } from '../../common/agent-state';
+import { ITask } from '../../../interfaces/task.interface';
+import { IAgent } from '../../common/agent.interface';
+import { RegisterAgent, AgentType } from '../../common/agent-registry';
+import { TemplatesService } from '../../../llm/templates/templates.service';
+import { LLMOptions } from '../../../llm/llm.interface';
+import { OpenAiService } from '../../../llm/llms/openai/openai.service';
+import { ValidatePromptContext } from './validate-prompt.interface';
 
 @Injectable()
-@RegisterAgent(AgentType.ValidatePromptAgent)
-export class ValidatePromptAgent implements IAgent {
+@RegisterAgent(AgentType.ValidatePrompt)
+export class ValidatePrompt implements IAgent {
   state: AgentState<ValidatePromptContext & ITask>;
-  protected readonly logger = new Logger(ValidatePromptAgent.name);
+  protected readonly logger = new Logger(ValidatePrompt.name);
 
   constructor(
     private readonly templatesService: TemplatesService,
     private readonly openAiService: OpenAiService,
   ) {}
 
-  async init(task: ITask): Promise<void> {
+  async initializeAgent(task: ITask): Promise<void> {
     this.state = new AgentState(task);
     this.state.setInitialized();
     this.logger.log(
@@ -28,6 +28,7 @@ export class ValidatePromptAgent implements IAgent {
   }
 
   async execute(task: ITask): Promise<any> {
+    this.initializeAgent(task);
     if (!this.state.initialized) {
       throw new Error('Agent not initialized');
     }
@@ -40,7 +41,7 @@ export class ValidatePromptAgent implements IAgent {
         task: task,
       });
 
-      this.logger.debug(`Rendered prompt: ${taskPrompt}`);
+      this.logger.log(`Rendered prompt: ${taskPrompt}`);
 
       const llmOptions: LLMOptions = {
         model: 'gpt-3.5-turbo-0125',
@@ -65,24 +66,13 @@ export class ValidatePromptAgent implements IAgent {
     }
   }
 
-  async handleResult(task: ITask, promptReview: any): Promise<void> {
-    if (!this.state.error) {
-      this.logger.log(`Prompt review processing result: ${promptReview}`);
-      // TODO handle the result
-    } else {
-      this.logger.error(
-        `Prompt processing failed: ${this.state.error.message}`,
-      );
-    }
-  }
-
   async handleError(
     error: Error,
     context: ValidatePromptContext & ITask,
   ): Promise<void> {
     this.state.setError(error);
     this.logger.error(
-      `Error occurred while processing task ${JSON.stringify(context)}: ${error.message}`,
+      `Error occurred while processing task ${JSON.stringify(context)}`,
       error.stack,
     );
     // TODO extra error handling logic: cleanup, notifications, etc.

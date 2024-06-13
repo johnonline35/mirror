@@ -28,9 +28,10 @@ export class AllExceptionsFilter
       exception instanceof HttpException
         ? exception.message
         : 'Internal server error';
+    const correlationId = request.headers['X-Correlation-ID'] || 'N/A';
 
     this.logger.error(
-      `Exception caught: ${message}`,
+      `Exception caught: ${message} [${correlationId}]`,
       (exception as Error).stack,
     );
 
@@ -38,6 +39,9 @@ export class AllExceptionsFilter
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
+      correlationId,
+      message,
+      stack: (exception as Error).stack,
     });
   }
 }

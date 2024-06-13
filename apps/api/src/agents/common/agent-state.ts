@@ -25,6 +25,10 @@ export class AgentState<TContext> {
     this._executed = true;
   }
 
+  setContext(context: TContext): void {
+    this.context = context;
+  }
+
   setError(error: Error): void {
     this._error = error;
   }

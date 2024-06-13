@@ -1,19 +1,22 @@
 import { Global, Module } from '@nestjs/common';
-import { PuppeteerService } from './puppeteer/puppeteer.service';
+import { PuppeteerUtilityService } from './puppeteer/puppeteer.service';
 import { CheerioUtilityService } from './cheerio/cheerio.service';
 import { GoogleSearchUtilityService } from './googlesearch/googlesearch.service';
+import { ParsePromptService } from './parsing/parse-prompt.service';
 
 @Global()
 @Module({
   providers: [
-    PuppeteerService,
+    PuppeteerUtilityService,
     CheerioUtilityService,
     GoogleSearchUtilityService,
+    ParsePromptService,
   ],
   exports: [
-    PuppeteerService,
+    PuppeteerUtilityService,
     CheerioUtilityService,
     GoogleSearchUtilityService,
+    ParsePromptService,
   ],
 })
 export class UtilitiesModule {}

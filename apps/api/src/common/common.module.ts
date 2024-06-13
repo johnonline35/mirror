@@ -6,9 +6,10 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { RedisCacheModule } from './caching/redis-cache/redis-cache.module';
 import { ConfigModule } from '../config/config.module';
+import { UtilitiesModule } from './utils/utilities.module';
 
 @Module({
-  imports: [RedisCacheModule, ConfigModule],
+  imports: [RedisCacheModule, ConfigModule, UtilitiesModule],
   providers: [
     CustomLoggerService,
     {
@@ -20,7 +21,7 @@ import { ConfigModule } from '../config/config.module';
       useClass: AllExceptionsFilter,
     },
   ],
-  exports: [CustomLoggerService, RedisCacheModule],
+  exports: [CustomLoggerService, RedisCacheModule, UtilitiesModule],
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

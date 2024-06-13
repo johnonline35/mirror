@@ -1,12 +1,5 @@
-import { CrawlRequestDto } from '../dto/CrawlRequestDto.dto';
-import { Page } from '../../../utilities/puppeteer/puppeteer.service';
+import { ITask } from '../../../interfaces/task.interface';
 
-export interface StrategyContext {
-  crawlRequestDto: CrawlRequestDto;
-  page: Page;
-  currentDepth?: number;
-}
-
-export interface CrawlerStrategy {
-  execute(context: StrategyContext): Promise<any>;
+export interface ICrawlerStrategy {
+  execute(task: ITask): Promise<any>;
 }

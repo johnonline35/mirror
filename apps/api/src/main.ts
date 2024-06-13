@@ -1,16 +1,22 @@
 import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+  });
 
-  console.log('Initializing NestJS application...');
+  Logger.log('Initializing NestJS application...');
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  if (process.env.NODE_ENV === 'development') {
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'test'
+  ) {
     const config = new DocumentBuilder()
       .setTitle('Mirror Data')
       .setDescription('Mirror Data API documentation')
@@ -21,6 +27,8 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
   }
+
+  Logger.log('Starting NestJS application...');
   await app.listen(3000);
 }
 bootstrap();
