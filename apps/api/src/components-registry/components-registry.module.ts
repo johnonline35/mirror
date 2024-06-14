@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { ComponentsRegistryService } from './components-registry.service';
 import { DiscoveryModule } from '@nestjs/core';
 import { CommonModule } from '../common/common.module';
+import { getTaskComponentProviders } from './components-registry.decorator';
 
 @Module({
   imports: [DiscoveryModule, CommonModule],
-  providers: [ComponentsRegistryService],
+  providers: [ComponentsRegistryService, ...getTaskComponentProviders()],
   exports: [ComponentsRegistryService],
 })
 export class ComponentsRegistryModule {}
