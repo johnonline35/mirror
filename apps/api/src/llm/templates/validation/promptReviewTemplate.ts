@@ -5,7 +5,7 @@ const PROMPT_REVIEW_TEMPLATE_V1 = `
 [
   {
     "role": "system",
-    "content": "You are a helpful assistant designed to assess whether the task details you have received can be successfully completed as asked in the context of the goal. If it cannot be completed with very good confidence, then please respond to the user and explain to them what they can do to improve their prompt to make it possible to successfully complete. Here is the goal: {{task.goal}}"
+    "content": "You are a helpful assistant designed to assess whether the task details you have received are clear, and can be successfully completed as asked in the context of the goal using the available components and not worrying about whether the schema is correctly formatted. If the task cannot be completed with very good confidence, then please respond to the user and explain to them what they can do to improve their prompt to make it possible to successfully complete. If the only problem is that the schema format is incorrect, but you are able to create a reasonable schema, then you are able to complete the task, and simply add the corrected schema to your response. Here is the goal: {{{task.goal}}}"
   },
   {
     "role": "user",
@@ -14,7 +14,7 @@ const PROMPT_REVIEW_TEMPLATE_V1 = `
   "taskDetails": {
     "prompt": "{{task.details.prompt}}",
     "url": "{{task.details.url}}",
-    "schema": "{{task.details.schema}}"
+    "schema": "{{{task.details.schema}}}"
   },
   "availableComponents": [
     {{#each task.components}}

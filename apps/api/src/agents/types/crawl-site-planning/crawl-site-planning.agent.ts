@@ -6,13 +6,16 @@ import { RegisterAgent, AgentType } from '../../common/agent-registry';
 import { TemplatesService } from '../../../llm/templates/templates.service';
 import { LLMOptions } from '../../../llm/llm.interface';
 import { OpenAiService } from '../../../llm/llms/openai/openai.service';
-import { ValidatePromptContext } from './validate-prompt.interface';
+import {
+  CrawlSitePlanningContext,
+  LlmCrawlingPlan,
+} from './crawl-site-planning.interface';
 
 @Injectable()
-@RegisterAgent(AgentType.ValidatePromptAgent)
-export class ValidatePromptAgent implements IAgent {
-  state: AgentState<ValidatePromptContext & ITask>;
-  protected readonly logger = new Logger(ValidatePromptAgent.name);
+@RegisterAgent(AgentType.CrawlSitePlanningAgent)
+export class CrawlSitePlanningAgent implements IAgent {
+  state: AgentState<CrawlSitePlanningContext & ITask>;
+  protected readonly logger = new Logger(CrawlSitePlanningAgent.name);
 
   constructor(
     private readonly templatesService: TemplatesService,
@@ -27,7 +30,10 @@ export class ValidatePromptAgent implements IAgent {
     );
   }
 
-  async execute(task: ITask): Promise<ValidatePromptContext> {
+  async execute(
+    task: ITask,
+    additionalData: any,
+  ): Promise<CrawlSitePlanningContext> {
     this.initializeAgent(task);
     if (!this.state.initialized) {
       throw new Error('Agent not initialized');
@@ -35,31 +41,30 @@ export class ValidatePromptAgent implements IAgent {
     this.logger.log(`Executing: ${JSON.stringify(task)}`);
 
     try {
-      const promptReviewTemplate =
-        this.templatesService.getPromptReviewTemplate('1.0');
-      const taskPrompt = promptReviewTemplate.render({
+      const siteCrawlPlanTemplate =
+        this.templatesService.getSiteCrawlPlanTemplate('2.0');
+      console.log('additionalData:', additionalData);
+      const siteCrawlPlan = siteCrawlPlanTemplate.render({
         task: task,
+        additionalData: additionalData,
       });
 
-      console.log(`Rendered prompt: ${taskPrompt}`);
+      console.log(`Rendered plan: ${siteCrawlPlan}`);
 
       const llmOptions: LLMOptions = {
-        model: 'gpt-3.5-turbo-0125',
+        model: 'gpt-4o-2024-05-13',
         maxTokens: 500,
-        temperature: 0.3,
+        temperature: 1,
       };
 
-      const promptReview = await this.openAiService.adapt(
-        taskPrompt,
-        llmOptions,
-      );
-      console.log(
-        `Received prompt review from LLM: ${JSON.stringify(promptReview)}`,
-      );
+      const plan = await this.openAiService.adapt(siteCrawlPlan, llmOptions);
+      // console.log(
+      //   `Received site crawling plan from LLM: ${JSON.stringify(plan)}`,
+      // );
 
-      this.state.context.promptReview = promptReview;
+      this.state.context.plan = plan as LlmCrawlingPlan;
       this.state.setExecuted();
-      return this.state.context;
+      return this.state.context.plan;
     } catch (error) {
       this.handleError(error, this.state.context);
       throw error;
@@ -68,7 +73,7 @@ export class ValidatePromptAgent implements IAgent {
 
   async handleError(
     error: Error,
-    context: ValidatePromptContext & ITask,
+    context: CrawlSitePlanningContext & ITask,
   ): Promise<void> {
     this.state.setError(error);
     this.logger.error(

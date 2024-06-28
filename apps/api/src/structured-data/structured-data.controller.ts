@@ -17,8 +17,9 @@ export class StructuredDataController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async handle(@Body() requestDto: StructuredDataDto) {
-    const job = await this.structuredDataService.handle(requestDto);
-    return { jobId: job.jobId };
+    const { jobId, result } =
+      await this.structuredDataService.handle(requestDto);
+    return { jobId, result };
   }
 
   @Get('status/:jobId')

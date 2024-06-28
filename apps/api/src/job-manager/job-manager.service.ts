@@ -22,18 +22,20 @@ export class JobManagerService implements IJobManagerService {
       },
     });
 
-    this.executeJob(job.jobId, task);
+    const jobResult = await this.executeJob(job.jobId, task);
 
-    return job;
+    return { jobId: job.jobId, result: jobResult };
   }
 
-  private async executeJob(jobId: string, task: ITask) {
+  private async executeJob(jobId: string, task: ITask): Promise<any> {
     try {
       const result = await this.workflowService.handle(task);
       await this.updateJobStatus(jobId, 'done', result);
+      return result;
     } catch (error) {
       this.logger.error(`Job execution failed for job ${jobId}:`, error);
       await this.updateJobStatus(jobId, 'failed');
+      throw error;
     }
   }
 

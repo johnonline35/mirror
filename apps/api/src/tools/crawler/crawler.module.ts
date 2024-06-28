@@ -1,26 +1,14 @@
 import { Module } from '@nestjs/common';
-import { CrawlHomepageService } from './crawler.service';
 import { PrismaModule } from '../../../prisma/prisma.module';
-// import { CrawlerStrategyFactory } from './strategies/crawler-strategy.factory';
-import { OpenAiService } from '../../llm/llms/openai/openai.service';
-// import { FallbackStrategy } from './strategies/crawler-strategies/fallback.strategy';
-import { UtilitiesModule } from '../../common/utils/utilities.module';
-// import { StrategiesModule } from './strategies/strategies.module';
-// import { CrawlerController } from './crawler.controller';
-import { TemplatesService } from '../../llm/templates/templates.service';
-import { AdaptersService } from '../../llm/adapters/adapters.service';
 import { CommonModule } from '../../common/common.module';
-import { CachingService } from '../../common/caching/redis-cache/redis-cache.service';
+import { CrawlerService } from './crawler.service';
+import { LlmModule } from '../../llm/llm.module';
+import { CrawlerStrategyFactory } from './strategies/crawler-strategy.factory';
+import { CrawlPuppeteerStrategy } from './strategies/crawler-strategies/crawl-puppeteer/crawl-puppeteer.strategy';
 
 @Module({
-  imports: [PrismaModule, UtilitiesModule, CommonModule],
-  providers: [
-    CrawlHomepageService,
-    OpenAiService,
-    TemplatesService,
-    AdaptersService,
-    CachingService,
-  ],
-  exports: [CrawlHomepageService],
+  imports: [PrismaModule, CommonModule, LlmModule],
+  providers: [CrawlerService, CrawlerStrategyFactory, CrawlPuppeteerStrategy],
+  exports: [CrawlerService, CrawlerStrategyFactory, CrawlPuppeteerStrategy],
 })
 export class CrawlerModule {}

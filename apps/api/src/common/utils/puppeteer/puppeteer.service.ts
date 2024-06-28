@@ -1,4 +1,4 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as puppeteer from 'puppeteer';
 import { Browser, Page } from 'puppeteer';
@@ -10,7 +10,7 @@ import { TaskComponent } from '../../../components-registry/components-registry.
 
 export { Browser, Page };
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 @TaskComponent(TaskComponentType.UTILITY)
 export class PuppeteerUtilityService implements TaskComponents {
   name = 'PuppeteerUtility';
@@ -21,6 +21,7 @@ export class PuppeteerUtilityService implements TaskComponents {
 
   async launchBrowser(): Promise<Browser> {
     const proxyServer = this.configService.get<string>('SMARTPROXY_SERVER');
+    console.log('proxyServer:', proxyServer);
     const browser = await puppeteer.launch({
       headless: 'new',
       args: [
@@ -33,12 +34,36 @@ export class PuppeteerUtilityService implements TaskComponents {
   }
 
   async createPage(browser: Browser): Promise<Page> {
-    const page = await browser.newPage();
-    await page.authenticate({
-      username: process.env.SMARTPROXY_USERNAME,
-      password: process.env.SMARTPROXY_PASSWORD,
-    });
-    return page;
+    try {
+      const page = await browser.newPage();
+
+      // Set authentication credentials for Smartproxy
+      const username = process.env.SMARTPROXY_USERNAME;
+      const password = process.env.SMARTPROXY_PASSWORD;
+      console.log('username', username);
+
+      if (!username || !password) {
+        throw new Error(
+          'Smartproxy credentials are not set in environment variables',
+        );
+      }
+
+      await page.authenticate({
+        username: username,
+        password: password,
+      });
+
+      console.log(
+        'Successfully created and authenticated a new page with Smartproxy',
+      );
+      return page;
+    } catch (error) {
+      console.error(
+        'Failed to create or authenticate page with Smartproxy',
+        error.stack,
+      );
+      throw new Error('Failed to create or authenticate page with Smartproxy');
+    }
   }
 
   async extractHtmlFromPage(url: string, page: Page): Promise<string> {

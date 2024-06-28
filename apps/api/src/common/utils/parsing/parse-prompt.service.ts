@@ -1,27 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ValidatePromptContext } from '../../../agents/types/validate-prompt/validate-prompt.interface';
 
 @Injectable()
 export class ParsePromptService {
   private readonly logger = new Logger(ParsePromptService.name);
 
-  parsePromptReview(promptReview: string): {
+  parsePromptReview(context: ValidatePromptContext): {
     success?: boolean;
     feedback?: string;
   } {
-    const successRegex = /success:\s*(true|false)/i;
-    const feedbackRegex = /feedback:\s*(.*)/i;
+    try {
+      const parsedReview = JSON.parse(context.promptReview);
 
-    const successMatch = promptReview.match(successRegex);
-    const feedbackMatch = promptReview.match(feedbackRegex);
+      const success = parsedReview.success;
+      const feedback = parsedReview.feedback;
 
-    if (successMatch) {
-      const success = successMatch[1].toLowerCase() === 'true';
-      const feedback = feedbackMatch ? feedbackMatch[1].trim() : undefined;
-      return { success, feedback };
-    } else {
-      this.logger.error('Failed to parse success status from prompt review');
-      const feedback = feedbackMatch ? feedbackMatch[1].trim() : undefined;
-      return { feedback };
+      if (success !== undefined) {
+        return { success, feedback };
+      } else {
+        this.logger.error('Failed to parse success status from prompt review');
+        return { feedback };
+      }
+    } catch (error) {
+      this.logger.error('Failed to parse prompt review JSON', error);
+      return {};
     }
   }
 }

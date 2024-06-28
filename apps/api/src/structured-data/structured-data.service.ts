@@ -14,6 +14,16 @@ export class StructuredDataService {
   async handle(requestDto: StructuredDataDto) {
     const { prompt, url, schema } = requestDto;
 
+    let schemaString: string;
+    try {
+      schemaString =
+        typeof schema === 'string' ? schema : JSON.stringify(schema);
+    } catch (error) {
+      throw new Error('Failed to stringify the schema');
+    }
+
+    console.log('schemaString', schemaString);
+
     const tools = this.componentsRegistryService.getComponentsByType(
       TaskComponentType.TOOL,
     );
@@ -26,14 +36,14 @@ export class StructuredDataService {
       details: {
         prompt,
         url,
-        schema,
+        schema: schemaString,
       },
-      goal: `Your task is to extract structured data from the provided unstructured text. The data should be formatted as per the schema defined by the user. The specified schema is as follows: ${JSON.stringify(schema)}. Please ensure the output matches this schema precisely.`,
+      goal: `Your task is to extract structured data from the provided unstructured text. The data should be formatted as per the schema defined by the user. If the schema is not correctly formated but it is clear what the user wants, then correct the schema but retain as closely as possible what the user wants. The specified user-defined schema is as follows: ${schemaString}.`,
       components: [...tools, ...utilities],
     };
 
-    const job = await this.jobManagerService.createJob(task);
-    return { jobId: job.jobId };
+    const jobResult = await this.jobManagerService.createJob(task);
+    return { jobId: jobResult.jobId, result: jobResult.result };
   }
 
   async getJobStatus(jobId: string) {

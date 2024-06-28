@@ -1,96 +1,49 @@
-import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
-import {
-  ModuleRef,
-  DiscoveryService,
-  Reflector,
-  ContextIdFactory,
-} from '@nestjs/core';
+import { Injectable, Logger } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import {
   TaskComponents,
   TaskComponentType,
 } from '../interfaces/task.interface';
-import { TASK_COMPONENT_METADATA_KEY } from './components-registry.decorator';
+import {
+  createTaskComponentRegistrySymbol,
+  createTaskComponentSymbol,
+} from './components-registry.decorator';
 
 @Injectable()
-export class ComponentsRegistryService implements OnModuleInit {
+export class ComponentsRegistryService {
   private readonly logger = new Logger(ComponentsRegistryService.name);
   private readonly componentsRegistry = new Map<
     TaskComponentType,
     TaskComponents[]
   >();
 
-  constructor(
-    private readonly moduleRef: ModuleRef,
-    private readonly discoveryService: DiscoveryService,
-    private readonly reflector: Reflector,
-  ) {
+  constructor(private readonly moduleRef: ModuleRef) {
     this.logger.log('ComponentsRegistryService instantiated');
   }
 
-  async onModuleInit() {
-    this.logger.log('Registering components...');
-    await this.registerComponents();
-  }
-
-  private async registerComponents() {
-    const providers = this.discoveryService.getProviders();
-    this.logger.log(`Found ${providers.length} providers`);
-    for (const wrapper of providers) {
-      const { instance, metatype } = wrapper;
-      if (
-        instance &&
-        metatype &&
-        this.reflector.get(TASK_COMPONENT_METADATA_KEY, metatype)
-      ) {
-        if (this.isTaskComponent(instance)) {
-          try {
-            this.logger.log(
-              `Found TaskComponent: ${instance.name} of type ${instance.type}. Metatype: ${metatype?.name}`,
-            );
-            const contextId = ContextIdFactory.create();
-            this.moduleRef.registerRequestByContextId({}, contextId);
-            const component = await this.moduleRef.resolve(
-              metatype as Type<any>,
-            );
-            this.registerComponent(component);
-          } catch (error) {
-            this.logger.error(
-              `Failed to register TaskComponent: ${instance.name} of type ${instance.type}. Metatype: ${metatype?.name}`,
-              error.stack,
-            );
-          }
-        }
-      } else {
-        this.logger.log(
-          `Skipping provider: ${instance?.constructor?.name || 'unknown'}`,
-        );
-      }
-    }
-  }
-
-  private isTaskComponent(instance: any): instance is TaskComponents {
-    return (
-      instance.name &&
-      instance.description &&
-      (instance.type === TaskComponentType.TOOL ||
-        instance.type === TaskComponentType.UTILITY)
-    );
-  }
-
-  private registerComponent(component: TaskComponents) {
-    const type: TaskComponentType = component.type;
-    if (!this.componentsRegistry.has(type)) {
-      this.componentsRegistry.set(type, []);
-    }
-    this.componentsRegistry.get(type)?.push(component);
-    this.logger.log(`Registered ${type}: ${component.name}`);
-  }
-
   getComponentsByType(componentType: TaskComponentType): TaskComponents[] {
-    return this.componentsRegistry.get(componentType) || [];
-  }
+    // Get all the keys that are registered for all component types
+    const taskComponentTypeProvideKeys: Set<string> = this.moduleRef.get(
+      createTaskComponentRegistrySymbol(),
+    );
 
-  getAllComponents(): Map<TaskComponentType, TaskComponents[]> {
-    return this.componentsRegistry;
+    // Create the symbol prefix for the specific component type we are looking for
+    // (i.e. this will be TASKCOMPONENT_UTILITY_ for TaskComponentType.UTILITY)
+    const symbolPrefixForComponentType = createTaskComponentSymbol(
+      componentType,
+      '',
+    );
+
+    // Get just the keys that are for the specific component type we are looking for
+    const symbolsForTaskComponentsForType = Array.from(
+      taskComponentTypeProvideKeys,
+    ).filter((key) => key.startsWith(symbolPrefixForComponentType));
+
+    // Get all the components the keys we got
+    const components: TaskComponents[] = symbolsForTaskComponentsForType.map(
+      (symbol) => this.moduleRef.get(symbol),
+    );
+
+    return components;
   }
 }

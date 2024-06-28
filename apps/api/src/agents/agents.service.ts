@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { IAgent } from './common/agent.interface';
-import { getAgent, getAllAgents, AgentType } from './common/agent-registry';
+import { AgentType, createAgentSymbol } from './common/agent-registry';
+import { ModuleRef } from '@nestjs/core';
 
 @Injectable()
-export class GetAgentsService {
-  getAgent(agentType: AgentType): IAgent {
-    return getAgent(agentType);
-  }
+export class AgentsService {
+  constructor(private readonly moduleRef: ModuleRef) {}
 
-  getAllAgents(): Map<AgentType, IAgent> {
-    return getAllAgents();
+  getAgent(agentType: AgentType): IAgent {
+    return this.moduleRef.get(createAgentSymbol(agentType));
   }
 }

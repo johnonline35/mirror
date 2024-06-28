@@ -1,4 +1,4 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as googleIt from 'google-it';
 import {
   TaskComponentType,
@@ -6,7 +6,7 @@ import {
 } from '../../../interfaces/task.interface';
 import { TaskComponent } from '../../../components-registry/components-registry.decorator';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 @TaskComponent(TaskComponentType.UTILITY)
 export class GoogleSearchUtilityService implements TaskComponents {
   name = 'GoogleSearchUtility';

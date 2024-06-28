@@ -15,4 +15,8 @@ export class TemplatesService {
   getPromptReviewTemplate(version: string): BaseTemplate {
     return TemplateFactory.createTemplate('PROMPT_REVIEW', version);
   }
+
+  getSiteCrawlPlanTemplate(version: string): BaseTemplate {
+    return TemplateFactory.createTemplate('SITE_CRAWL_PLAN', version);
+  }
 }

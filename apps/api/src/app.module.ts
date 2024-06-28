@@ -29,7 +29,6 @@ import { ComponentsRegistryModule } from './components-registry/components-regis
     CrawlerModule,
     LlmModule,
     AgentsModule,
-    ConfigModule,
     WorkflowModule,
     TaskDispatcherModule,
     JobManagerModule,
