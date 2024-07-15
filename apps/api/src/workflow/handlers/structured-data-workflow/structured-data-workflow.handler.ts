@@ -6,7 +6,13 @@ import { AgentType } from '../../../agents/common/agent-registry';
 import { ParsePromptService } from '../../../common/utils/parsing/parse-prompt.service';
 import { StructuredDataTaskResponse } from './structured-data-workflow.interface';
 import { UrlExtractorService } from '../../../common/utils/parsing/url-extractor.service';
-import { ExtractedPageData } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
+import {
+  ExtractedPageData,
+  ProcessedPagesData,
+  ExtractedAndProcessedData,
+} from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
+import { ConcurrentPageDataService } from '../../../common/utils/concurrency/concurrency-handler.service';
+import { JsonExtractionService } from '../../../common/utils/json-extraction-from-text/json-extraction.service';
 
 @Injectable()
 export class StructuredDataWorkflowHandler implements IWorkflowHandler {
@@ -16,6 +22,8 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
     private readonly taskDispatcher: TaskDispatcherService,
     private readonly parsePromptService: ParsePromptService,
     private readonly urlExtractorService: UrlExtractorService,
+    private readonly concurrentPageDataService: ConcurrentPageDataService,
+    private readonly jsonExtractionService: JsonExtractionService,
   ) {}
 
   async handle(task: ITask): Promise<StructuredDataTaskResponse> {
@@ -24,6 +32,7 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
         `Handling workflow structured data extraction: ${JSON.stringify(task)}`,
       );
 
+      // Review the user's initial task to determine if the task can be completed
       const promptReview = await this.taskDispatcher.dispatch(
         task,
         AgentType.ValidatePromptAgent,
@@ -35,14 +44,14 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
       if (canCompleteTask.success) {
         this.logger.log('Task can be successfully completed:', task);
 
-        // Get an understanding from the homepage as to the type of site it is, whether it can be crawled and if it can be, the links and assets it has
+        // Extract all data from the homepage into ExtractedPageData object
         const homepageData: ExtractedPageData =
           await this.taskDispatcher.dispatch(
             task,
             AgentType.CrawlHomepageAgent,
           );
 
-        // Given the users goals, generate a list of pages to visit to complete the goal
+        // Given the users task, generate a list of pages to visit to complete the task
         const siteCrawlPlan = await this.taskDispatcher.dispatch(
           task,
           AgentType.CrawlSitePlanningAgent,
@@ -51,37 +60,73 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
 
         console.log('siteCrawlPlan', siteCrawlPlan);
 
-        const internalLinksToCrawl =
-          this.urlExtractorService.extractUrls(siteCrawlPlan);
-
-        console.log('Internal Links to crawl:', internalLinksToCrawl);
-
-        // Crawl the website based on the plan
-        // const extractedWebsiteData = await this.taskDispatcher.dispatch(
+        // const reflectionOnSiteCrawlPlan = await this.taskDispatcher.dispatch(
         //   task,
-        //   AgentType.CrawlWebsiteAgent,
-        //   internalLinksToCrawl,
+        //   AgentType.ReflectionAgent,
+        //   { internalLinks },
         // );
 
-        // Evaluate the extracted data and decide whether it meets the users initial schema, if not, adjust it before returning it in the correct schema
-        // const outputEvaluation = await this.taskDispatcher.dispatch(
-        //    extractedWebsiteData,
-        //    AgentType.OutputEvaluationAgent,
-        // );
+        // console.log('reflectionOnSiteCrawlPlan:', reflectionOnSiteCrawlPlan);
 
-        // Reflect on how this process has gone - is the result what the user would expect?
-        // const result = await this.taskDispatcher.dispatch(
-        //    outputEvaluation,
-        //    AgentType.ReflectionAgent,
-        // );
+        const urls = this.urlExtractorService.extractUrls(siteCrawlPlan.plan);
+
+        console.log('urls', urls);
+
+        // Extract data from each url/page
+        const extractedPagesData: ExtractedPageData[] =
+          await this.executeAgentConcurrently<string, ExtractedPageData>(
+            urls.slice(0, 1),
+            // urls,
+            task,
+            AgentType.CrawlPageAgent,
+            3, // concurrency limit
+          );
+
+        console.log('extractedPagesData:');
+        extractedPagesData.forEach((data, index) => {
+          console.log(`Result ${index + 1}:`, data);
+        });
+
+        const processedPagesData: ProcessedPagesData[] =
+          await this.executeAgentConcurrently<
+            ExtractedPageData,
+            ProcessedPagesData
+          >(
+            extractedPagesData,
+            task,
+            AgentType.DataExtractionAndInferenceAgent,
+            3, // concurrency limit
+          );
+
+        processedPagesData.forEach((data, index) => {
+          console.log(`processedPagesData object ${index + 1}:`, data);
+        });
+
+        const extractedAndProcessedData: ExtractedAndProcessedData =
+          await this.taskDispatcher.dispatch(
+            task,
+            AgentType.DataReviewAgent,
+            processedPagesData,
+          );
+
+        console.log('processedData:', extractedAndProcessedData.processedData);
+
+        const json = this.jsonExtractionService.extractValidJson(
+          extractedAndProcessedData.processedData,
+        );
+
+        console.log('final json', JSON.stringify(json));
+
+        // const outputData write to s3?
+        // pre signed url?
+        //
 
         return {
           success: true,
           feedback: canCompleteTask.feedback,
           // resultData: homepageData,
-          resultData: 'Finished',
+          resultData: json,
         };
-        // }
       } else {
         // TODO handle the cannot be crawled use case
         this.logger.warn(`Feedback: ${canCompleteTask.feedback}`);
@@ -95,5 +140,21 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
       this.logger.error('Error handling structured data extraction:', error);
       throw new Error(`Workflow processing failed: ${error.message}`);
     }
+  }
+
+  private async executeAgentConcurrently<TInput, TOutput>(
+    inputs: TInput[],
+    task: ITask,
+    agentType: AgentType,
+    concurrencyLimit: number,
+  ): Promise<TOutput[]> {
+    const taskFn = (input: TInput): Promise<TOutput> =>
+      this.taskDispatcher.dispatch(task, agentType, input) as Promise<TOutput>;
+
+    return this.concurrentPageDataService.execute(
+      inputs,
+      concurrencyLimit,
+      taskFn,
+    );
   }
 }

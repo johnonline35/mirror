@@ -18,7 +18,15 @@
     "test:watch": "NODE_ENV=test jest --watch",
     "test:cov": "NODE_ENV=test jest --coverage",
     "test:debug": "NODE_ENV=test node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "NODE_ENV=test jest --config ./test/jest-e2e.json"
+    "test:e2e": "NODE_ENV=test jest --config ./test/jest-e2e.json",
+    "prepare:packageJson": "node ./scripts/prepare-package-json.js",
+    "prepare:prodmodules": "sh ./scripts/prepare-prod-modules.sh",
+    "prepare:secrets": "node ./scripts/copy-secrets.js",
+    "build:prod": "rimraf server && tsc -p tsconfig.server.json && npm run prepare:packageJson && cd server && npm i -f && cd .. && npm run prepare:prodmodules",
+    "deploy": "npm run build:prod && npm run prepare:secrets -- --staging && arc deploy --no-hydrate --staging",
+    "postdeploy": "node ./scripts/deploy-env-vars --staging",
+    "deploy:production": "npm run build:prod && npm run prepare:secrets -- --production && arc deploy --no-hydrate --production",
+    "postdeploy:production": "node ./scripts/deploy-env-vars --production"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.21.0",

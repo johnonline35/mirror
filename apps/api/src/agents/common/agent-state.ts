@@ -25,8 +25,8 @@ export class AgentState<TContext> {
     this._executed = true;
   }
 
-  setContext(context: TContext): void {
-    this.context = context;
+  setContext(partialContext: Partial<TContext>): void {
+    this.context = { ...this.context, ...partialContext };
   }
 
   setError(error: Error): void {

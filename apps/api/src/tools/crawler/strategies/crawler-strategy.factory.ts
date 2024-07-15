@@ -10,13 +10,12 @@ export class CrawlerStrategyFactory {
     private readonly crawlPuppeteerStrategy: CrawlPuppeteerStrategy,
   ) {}
 
-  getStrategy(type: string): ICrawlerStrategy {
-    switch (type) {
-      case 'puppeteer':
+  getStrategy(domainName: string): ICrawlerStrategy {
+    switch (domainName) {
+      case 'google.com':
         return this.crawlPuppeteerStrategy;
       default:
-        this.logger.error(`No strategy found for type: ${type}`);
-        throw new Error(`No strategy found for type: ${type}`);
+        return this.crawlPuppeteerStrategy;
     }
   }
 }

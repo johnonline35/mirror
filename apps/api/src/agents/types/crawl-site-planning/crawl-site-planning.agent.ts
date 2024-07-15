@@ -10,6 +10,7 @@ import {
   CrawlSitePlanningContext,
   LlmCrawlingPlan,
 } from './crawl-site-planning.interface';
+// import { ReflectionAgent } from '../reflection/reflection.agent';
 
 @Injectable()
 @RegisterAgent(AgentType.CrawlSitePlanningAgent)
@@ -20,6 +21,7 @@ export class CrawlSitePlanningAgent implements IAgent {
   constructor(
     private readonly templatesService: TemplatesService,
     private readonly openAiService: OpenAiService,
+    // private readonly reflectionAgent: ReflectionAgent,
   ) {}
 
   private async initializeAgent(task: ITask): Promise<void> {
@@ -32,7 +34,7 @@ export class CrawlSitePlanningAgent implements IAgent {
 
   async execute(
     task: ITask,
-    additionalData: any,
+    homepageData: any,
   ): Promise<CrawlSitePlanningContext> {
     this.initializeAgent(task);
     if (!this.state.initialized) {
@@ -43,28 +45,37 @@ export class CrawlSitePlanningAgent implements IAgent {
     try {
       const siteCrawlPlanTemplate =
         this.templatesService.getSiteCrawlPlanTemplate('2.0');
-      console.log('additionalData:', additionalData);
-      const siteCrawlPlan = siteCrawlPlanTemplate.render({
+      console.log('homepageData:', homepageData);
+      const renderedTemplate = siteCrawlPlanTemplate.render({
         task: task,
-        additionalData: additionalData,
+        homepageData: homepageData,
       });
 
-      console.log(`Rendered plan: ${siteCrawlPlan}`);
+      console.log(`Rendered siteCrawlPlan before submit: ${renderedTemplate}`);
 
       const llmOptions: LLMOptions = {
-        model: 'gpt-4o-2024-05-13',
-        maxTokens: 500,
+        model: 'gpt-3.5-turbo-0125',
+        maxTokens: 1000,
         temperature: 1,
       };
 
-      const plan = await this.openAiService.adapt(siteCrawlPlan, llmOptions);
-      // console.log(
-      //   `Received site crawling plan from LLM: ${JSON.stringify(plan)}`,
+      const initialPlan: string = await this.openAiService.adapt(
+        renderedTemplate,
+        llmOptions,
+      );
+      console.log(`Received site crawling plan from LLM: ${initialPlan}`);
+
+      // const reflectionContext = await this.reflectionAgent.execute(
+      //   task,
+      //   initialPlan,
+      //   homepageData,
       // );
 
-      this.state.context.plan = plan as LlmCrawlingPlan;
+      // console.log('reflectionContext:', reflectionContext);
+
+      this.state.context.plan = initialPlan as LlmCrawlingPlan;
       this.state.setExecuted();
-      return this.state.context.plan;
+      return this.state.context;
     } catch (error) {
       this.handleError(error, this.state.context);
       throw error;

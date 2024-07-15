@@ -3,6 +3,7 @@ import { CrawlerStrategyFactory } from './strategies/crawler-strategy.factory';
 import { ITask, TaskComponentType } from '../../interfaces/task.interface';
 import { TaskComponent } from '../../components-registry/components-registry.decorator';
 import { ITool } from '../tools.interface';
+import { UrlExtractorService } from '../../common/utils/parsing/url-extractor.service';
 
 @Injectable()
 @TaskComponent(TaskComponentType.TOOL)
@@ -16,10 +17,24 @@ export class CrawlerService implements ITool<ITask> {
 
   constructor(
     private readonly crawlerStrategyFactory: CrawlerStrategyFactory,
+    private readonly urlExtractorService: UrlExtractorService,
   ) {}
 
-  async execute(task: ITask, strategyType: string): Promise<any> {
-    const strategy = this.crawlerStrategyFactory.getStrategy(strategyType);
-    return strategy.execute(task);
+  async execute(task: ITask, url?: string): Promise<any> {
+    const taskUrl = task.details.url;
+    const strategy = this.getStrategy(taskUrl, url);
+    return strategy.execute(task, url);
+  }
+
+  private getStrategy(taskUrl: string, url?: string) {
+    // the url only exists after the taskUrl has been parsed on the first run
+    // this means that the function will priotize url over taskUrl which is only used once
+    if (url) {
+      const domainName = this.urlExtractorService.extractDomainName(url);
+      return this.crawlerStrategyFactory.getStrategy(domainName);
+    } else {
+      const domainName = this.urlExtractorService.extractDomainName(taskUrl);
+      return this.crawlerStrategyFactory.getStrategy(domainName);
+    }
   }
 }

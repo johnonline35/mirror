@@ -11,7 +11,8 @@ class InvalidRequestError extends Error {}
 function shouldBailOut(error: Error): boolean {
   return (
     error instanceof AuthenticationFailureError ||
-    error instanceof InvalidRequestError
+    error instanceof InvalidRequestError ||
+    error.message.includes('Invalid URL')
   );
 }
 

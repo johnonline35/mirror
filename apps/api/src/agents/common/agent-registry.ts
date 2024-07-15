@@ -36,9 +36,11 @@ export function getAgentProviders(): Provider[] {
 }
 
 export enum AgentType {
-  CrawlSitePlanningAgent = 'CRAWL_SITE_PLANNING_AGENT',
-  ValidatePromptAgent = 'VALIDATE_PROMPT_AGENT',
   CrawlHomepageAgent = 'CRAWL_HOMEPAGE_AGENT',
-  CrawlWebsiteAgent = 'CRAWL_WEBSITE_AGENT',
-  WebsiteTypeDetectionAgent = 'WEBSITE_TYPE_DETECTION_AGENT',
+  CrawlPageAgent = 'CrawlPageAgent',
+  CrawlSitePlanningAgent = 'CRAWL_SITE_PLANNING_AGENT',
+  DataExtractionAndInferenceAgent = 'DATA_EXTRACTION_AND_INFERENCE_AGENT',
+  DataReviewAgent = 'DATA_REVIEW_AGENT',
+  ReflectionAgent = 'REFLECTION_AGENT',
+  ValidatePromptAgent = 'VALIDATE_PROMPT_AGENT',
 }

@@ -14,7 +14,7 @@ import { CachingService } from '../redis-cache/redis-cache.service';
         store: typeof redisStore,
         host: configService.get('REDIS_HOST'),
         port: Number(configService.get('REDIS_PORT')),
-        ttl: 600, // 10 minutes
+        ttl: 10800, // 3 hours
       }),
     }),
   ],

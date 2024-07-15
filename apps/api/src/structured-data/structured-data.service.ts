@@ -41,7 +41,19 @@ export class StructuredDataService {
       goal: `Your task is to extract structured data from the provided unstructured text. The data should be formatted as per the schema defined by the user. If the schema is not correctly formated but it is clear what the user wants, then correct the schema but retain as closely as possible what the user wants. The specified user-defined schema is as follows: ${schemaString}.`,
       components: [...tools, ...utilities],
     };
-
+    // TODO:
+    // const invoke = async (funcName, payload) => {
+    //   const client = new LambdaClient({});
+    //   const command = new InvokeCommand({
+    //     FunctionName: funcName,
+    //     Payload: JSON.stringify(payload),
+    //     LogType: LogType.Tail,
+    //   });
+    //   const { Payload, LogResult } = await client.send(command);
+    //   const result = Buffer.from(Payload).toString();
+    //   const logs = Buffer.from(LogResult, 'base64').toString();
+    //   return { logs, result };
+    // };
     const jobResult = await this.jobManagerService.createJob(task);
     return { jobId: jobResult.jobId, result: jobResult.result };
   }

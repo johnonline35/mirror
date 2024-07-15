@@ -1,4 +1,4 @@
-import { BaseTemplate } from '../baseTemplate';
+import { BaseTemplate } from '../../baseTemplate';
 
 // Template versions
 const CRAWL_PLAN_TEMPLATE_V2 = `
@@ -10,9 +10,9 @@ Goal:
 Extracted Data:
 
 - Internal Links:
-{{#if additionalData.internalLinks}}
-{{#each additionalData.internalLinks}}
-  - Name: {{name}}, URL: {{url}}
+{{#if homepageData.internalLinks}}
+{{#each homepageData.internalLinks}}
+  - Link Name: {{name}}, URL: {{url}}
 {{/each}}
 {{else}}N/A
 {{/if}}
@@ -39,15 +39,15 @@ Goal:
 - This overall goal you are trying to achieve - please keep this goal in mind when creating your plan. Here is the goal: {{{task.goal}}}
 
 Extracted Data:
-- Cleaned Text: {{#if additionalData.cleanedText}}{{{additionalData.cleanedText}}}{{else}}N/A{{/if}}
-- Meta Tags: {{#if additionalData.metaTags}}{{{json additionalData.metaTags}}}{{else}}N/A{{/if}}
-- Title: {{#if additionalData.title}}{{{additionalData.title}}}{{else}}N/A{{/if}}
-- Headings: {{#if additionalData.headings}}{{{json additionalData.headings}}}{{else}}N/A{{/if}}
-- Internal Links: {{#if additionalData.internalLinks}}{{{json additionalData.internalLinks}}}{{else}}N/A{{/if}}
-- External Links: {{#if additionalData.externalLinks}}{{{json additionalData.externalLinks}}}{{else}}N/A{{/if}}
-- Image URLs: {{#if additionalData.imageUrls}}{{{json additionalData.imageUrls}}}{{else}}N/A{{/if}}
-- Script URLs: {{#if additionalData.scriptUrls}}{{{json additionalData.scriptUrls}}}{{else}}N/A{{/if}}
-- Stylesheet URLs: {{#if additionalData.stylesheetUrls}}{{{json additionalData.stylesheetUrls}}}{{else}}N/A{{/if}}
+- Cleaned Text: {{#if homepageData.cleanedText}}{{{homepageData.cleanedText}}}{{else}}N/A{{/if}}
+- Meta Tags: {{#if homepageData.metaTags}}{{{json homepageData.metaTags}}}{{else}}N/A{{/if}}
+- Title: {{#if homepageData.title}}{{{homepageData.title}}}{{else}}N/A{{/if}}
+- Headings: {{#if homepageData.headings}}{{{json homepageData.headings}}}{{else}}N/A{{/if}}
+- Internal Links: {{#if homepageData.internalLinks}}{{{json homepageData.internalLinks}}}{{else}}N/A{{/if}}
+- External Links: {{#if homepageData.externalLinks}}{{{json homepageData.externalLinks}}}{{else}}N/A{{/if}}
+- Image URLs: {{#if homepageData.imageUrls}}{{{json homepageData.imageUrls}}}{{else}}N/A{{/if}}
+- Script URLs: {{#if homepageData.scriptUrls}}{{{json homepageData.scriptUrls}}}{{else}}N/A{{/if}}
+- Stylesheet URLs: {{#if homepageData.stylesheetUrls}}{{{json homepageData.stylesheetUrls}}}{{else}}N/A{{/if}}
 
 Plan:
 1. **Identify Primary Sections**: Based on headings and internal links, identify the primary sections of the website (e.g. here is a non-comprehensive list of common sections: Products, Customers, Testimonials, Use Cases, Company, Team, Contact, Blog, About).

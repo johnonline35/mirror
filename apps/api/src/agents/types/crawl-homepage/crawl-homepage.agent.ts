@@ -25,13 +25,11 @@ export class CrawlHomepageAgent implements IAgent {
 
   async execute(task: ITask): Promise<CrawlHomepageContext> {
     await this.initializeAgent(task);
-    if (!this.state.initialized) {
-      throw new Error('Agent not initialized');
-    }
+
     this.logger.log(`Executing: ${JSON.stringify(task)}`);
 
     try {
-      const homepageData = await this.crawlerService.execute(task, 'puppeteer');
+      const homepageData = await this.crawlerService.execute(task);
       this.state.context.homepageData = homepageData as ExtractedPageData;
       this.state.setExecuted();
       return this.state.context.homepageData;

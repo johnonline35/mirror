@@ -28,10 +28,46 @@ export class UrlExtractorService {
 
   private isValidUrl(url: string): boolean {
     try {
-      new URL(url);
-      return true;
+      const parsedUrl = new URL(url);
+      // Check if the URL has a valid hostname
+      return parsedUrl.hostname.includes('.');
     } catch (e) {
+      this.logger.warn(`Invalid URL detected: ${url}`, e);
       return false;
+    }
+  }
+
+  extractDomainName(url: string): string {
+    try {
+      const parsedUrl = new URL(url);
+      const hostname = parsedUrl.hostname;
+
+      // Check for IP address (IPv4)
+      if (hostname.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
+        return hostname;
+      }
+
+      // Check for IP address (IPv6)
+      if (hostname.match(/^\[[0-9a-fA-F:]+\]$/)) {
+        return hostname;
+      }
+
+      const domainParts = hostname.split('.');
+
+      // Handle Punycode (IDNs)
+      const decodedHostname = hostname.startsWith('xn--')
+        ? decodeURIComponent(hostname)
+        : hostname;
+
+      if (domainParts.length > 2) {
+        // Handle subdomains by getting the last two parts of the hostname
+        return domainParts.slice(-2).join('.');
+      } else {
+        return decodedHostname;
+      }
+    } catch (error) {
+      console.error('Invalid URL', error);
+      return '';
     }
   }
 }

@@ -23,29 +23,25 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async execute(task: ITask): Promise<ExtractedPageData> {
+  async execute(task: ITask, url?: string): Promise<ExtractedPageData> {
     this.logger.log('executing task:', task);
-    const extractedPageData = await this.crawlUrl(task);
-    return extractedPageData;
+    if (url) {
+      const extractedPageData = await this.crawlUrl(url);
+      return extractedPageData;
+    } else {
+      const url = task.details.url;
+      const extractedPageData = await this.crawlUrl(url);
+      return extractedPageData;
+    }
   }
 
-  private async crawlUrl(task: ITask): Promise<ExtractedPageData> {
-    const cacheKey = `crawl:${task.details.url}`;
-    const cachedResult =
-      await this.cacheManager.get<ExtractedPageData>(cacheKey);
-
-    if (cachedResult) {
-      this.logger.log(`Cache hit for URL: ${task.details.url}`);
-      return cachedResult;
-    }
-
-    this.logger.log(`Starting to crawl URL: ${task.details.url}`);
+  private async crawlUrl(url: string): Promise<ExtractedPageData> {
+    this.logger.log(`Starting to crawl URL: ${url}`);
     const browser = await this.puppeterUtilityService.launchBrowser();
 
     try {
       const page = await this.puppeterUtilityService.createPage(browser);
-      const extractedPageData = await this.crawlWithRetry(task, page);
-      await this.cacheManager.set(cacheKey, extractedPageData, 600); // Cache for 10 minutes
+      const extractedPageData = await this.crawlWithRetry(url, page);
       return extractedPageData;
     } catch (error) {
       this.logger.error(`Crawl failed`, error.stack);
@@ -56,7 +52,7 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
   }
 
   private async crawlWithRetry(
-    task: ITask,
+    url: string,
     page: Page,
   ): Promise<ExtractedPageData> {
     const retryOptions: RetryOptions = {
@@ -70,7 +66,7 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
       },
     };
 
-    return retryOperation(() => this.extractPageData(task, page), retryOptions);
+    return retryOperation(() => this.extractPageData(url, page), retryOptions);
   }
 
   private async scrollToBottom(page: Page) {
@@ -109,207 +105,72 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
     }
   }
 
+  // private async extractPageData(
+  //   url: string,
+  //   page: Page,
+  // ): Promise<ExtractedPageData> {
+  //   console.log('extract page data from:', url);
+  //   this.logger.log(`Navigating to URL: ${url}`);
+  //   await page.goto(url, {
+  //     waitUntil: 'networkidle0',
+  //     timeout: 60000,
+  //   });
+
+  //   console.log('Started scrolling');
+
+  //   // Scroll to the bottom or handle infinite scrolling
+  //   await this.scrollToBottom(page);
+
+  //   console.log('Finished scrolling');
+
+  //   const extractedPageData = await this.cheerioUtilityService.extractPageData(
+  //     page,
+  //     url,
+  //   );
+  //   return extractedPageData;
+  // }
+
   private async extractPageData(
-    task: ITask,
+    url: string,
     page: Page,
   ): Promise<ExtractedPageData> {
-    console.log('task details', task.details);
-    this.logger.log(`Navigating to URL: ${task.details.url}`);
-    await page.goto(task.details.url, {
-      waitUntil: 'networkidle0',
-      timeout: 60000,
-    });
+    this.logger.log(`Navigating to URL: ${url} at ${new Date().toISOString()}`);
 
-    console.log('Started scrolling');
+    try {
+      const navigationStart = Date.now();
+      await page.goto(url, {
+        waitUntil: 'networkidle0',
+        timeout: 60000,
+      });
+      const navigationEnd = Date.now();
+      this.logger.log(
+        `Navigation to ${url} took ${navigationEnd - navigationStart}ms`,
+      );
 
-    // Scroll to the bottom or handle infinite scrolling
-    await this.scrollToBottom(page);
+      this.logger.log('Started scrolling');
+      const scrollStart = Date.now();
 
-    console.log('Finished scrolling');
+      // Scroll to the bottom or handle infinite scrolling
+      await this.scrollToBottom(page);
 
-    const extractedPageData = await this.cheerioUtilityService.extractPageData(
-      page,
-      task,
-    );
-    return extractedPageData;
+      const scrollEnd = Date.now();
+      this.logger.log(`Scrolling took ${scrollEnd - scrollStart}ms`);
+
+      const extractionStart = Date.now();
+      const extractedPageData =
+        await this.cheerioUtilityService.extractPageData(page, url);
+      const extractionEnd = Date.now();
+      this.logger.log(
+        `Data extraction took ${extractionEnd - extractionStart}ms`,
+      );
+
+      return extractedPageData;
+    } catch (error) {
+      this.logger.error(
+        `Failed to extract page data from ${url}: ${error.message}`,
+        error.stack,
+      );
+      throw error; // Re-throw the error after logging it
+    }
   }
 }
-
-// private async extractPageData(
-//   page: Page,
-//   task: ITask,
-// ): Promise<ExtractedPageData> {
-//   const html = await page.content();
-//   const $ = cheerio.load(html);
-//   const baseUrl = task.details.url;
-
-//   const getBaseDomain = (url: string) => {
-//     const hostname = new URL(url).hostname;
-//     const parts = hostname.split('.').reverse();
-//     if (parts.length >= 2) {
-//       return parts[1] + '.' + parts[0];
-//     }
-//     return hostname;
-//   };
-
-//   const baseDomain = getBaseDomain(baseUrl);
-
-//   function extractAndCleanText(html: string): string {
-//     const $ = cheerio.load(html);
-
-//     // Remove specified elements
-//     $(
-//       'script, link[rel="stylesheet"], style, svg, path, meta, noscript, iframe, object, embed',
-//     ).remove();
-//     $('[style]').removeAttr('style');
-
-//     // Remove elements with no content
-//     $('*')
-//       .filter((_, el) => !$(el).html().trim())
-//       .remove();
-
-//     // Function to get text with proper spacing
-//     function getTextWithSpacing(element: cheerio.Cheerio): string {
-//       let text = '';
-//       element.contents().each((_, el) => {
-//         const node = $(el);
-//         if (el.type === 'text') {
-//           text += node.text();
-//         } else if (el.type === 'tag') {
-//           text += ' ' + getTextWithSpacing(node) + ' ';
-//         }
-//       });
-//       return text;
-//     }
-
-//     // Extract and clean the text
-//     let cleanedText = getTextWithSpacing($('body')).trim();
-//     cleanedText = cleanedText.replace(/\s+/g, ' '); // Collapse multiple spaces into a single space
-
-//     return cleanedText;
-//   }
-
-//   const cleanedText = extractAndCleanText(html);
-
-//   // This function returns very raw text that isnt cleaned
-//   // const extractedHomePageText = $('body')
-//   //   .text()
-//   //   .trim()
-//   //   .replace(/\s+/g, ' ')
-//   //   .trim();
-
-//   const uniqueInternalLinks = new Set<string>();
-//   const uniqueExternalLinks = new Set<string>();
-//   const internalLinks: LinkData[] = [];
-//   const externalLinks: LinkData[] = [];
-//   const uniqueImageUrls = new Set<string>();
-//   const imageUrls: LinkData[] = [];
-//   const uniqueScriptUrls = new Set<string>();
-//   const scriptUrls: string[] = [];
-//   const uniqueStylesheetUrls = new Set<string>();
-//   const stylesheetUrls: string[] = [];
-//   const metaTags: Record<string, string> = {};
-//   const headings: Record<string, string[]> = {
-//     H1: [],
-//     H2: [],
-//     H3: [],
-//     H4: [],
-//     H5: [],
-//     H6: [],
-//   };
-
-//   // Extract internal and external links
-//   $('a').each((_, el) => {
-//     const href = $(el).attr('href');
-//     const text = $(el).text().trim();
-//     if (href) {
-//       const resolvedUrl = new URL(href, baseUrl).href;
-//       const resolvedDomain = getBaseDomain(resolvedUrl);
-
-//       const linkData: LinkData = { url: resolvedUrl, name: text || href };
-//       if (resolvedDomain === baseDomain) {
-//         if (!uniqueInternalLinks.has(resolvedUrl)) {
-//           uniqueInternalLinks.add(resolvedUrl);
-//           internalLinks.push(linkData);
-//         }
-//       } else {
-//         if (!uniqueExternalLinks.has(resolvedUrl)) {
-//           uniqueExternalLinks.add(resolvedUrl);
-//           externalLinks.push(linkData);
-//         }
-//       }
-//     }
-//   });
-
-//   // Extract image URLs
-//   $('img').each((_, el) => {
-//     const src = $(el).attr('src');
-//     const alt = $(el).attr('alt');
-//     const parentDivClass = $(el).closest('div').attr('class');
-//     if (src && !uniqueImageUrls.has(src)) {
-//       uniqueImageUrls.add(src);
-//       imageUrls.push({ url: src, name: alt || parentDivClass || '' });
-//     }
-//   });
-
-//   // Extract meta tags
-//   $('meta').each((_, el) => {
-//     const name = $(el).attr('name') || $(el).attr('property');
-//     const content = $(el).attr('content');
-//     if (name && content) {
-//       metaTags[name] = content;
-//     }
-//   });
-
-//   // Extract title
-//   const title = $('title').text().trim();
-
-//   // Extract headings
-//   Object.keys(headings).forEach((tag) => {
-//     $(tag).each((_, el) => {
-//       headings[tag].push($(el).text().trim());
-//     });
-//   });
-
-//   // Extract script URLs
-//   $('script').each((_, el) => {
-//     const src = $(el).attr('src');
-//     if (src) {
-//       const resolvedUrl = new URL(src, baseUrl).href;
-//       if (!uniqueScriptUrls.has(resolvedUrl)) {
-//         uniqueScriptUrls.add(resolvedUrl);
-//         scriptUrls.push(resolvedUrl);
-//       }
-//     }
-//   });
-
-//   // Extract stylesheet URLs
-//   $('link[rel="stylesheet"]').each((_, el) => {
-//     const href = $(el).attr('href');
-//     if (href) {
-//       const resolvedUrl = new URL(href, baseUrl).href;
-//       if (!uniqueStylesheetUrls.has(resolvedUrl)) {
-//         uniqueStylesheetUrls.add(resolvedUrl);
-//         stylesheetUrls.push(resolvedUrl);
-//       }
-//     }
-//   });
-
-//   this.logger.log(`Extracted homepage data from URL`);
-
-//   const extractedPageData: ExtractedPageData = {
-//     cleanedText,
-//     metaTags,
-//     title,
-//     headings,
-//     internalLinks,
-//     externalLinks,
-//     imageUrls,
-//     scriptUrls,
-//     stylesheetUrls,
-//   };
-
-//   console.log('extractedPageData', extractedPageData.internalLinks);
-//   return extractedPageData;
-// }
-// }

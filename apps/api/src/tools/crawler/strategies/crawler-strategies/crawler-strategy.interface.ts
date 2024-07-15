@@ -1,7 +1,7 @@
 import { ITask } from '../../../../interfaces/task.interface';
 
 export interface ICrawlerStrategy {
-  execute(task: ITask): Promise<any>;
+  execute(task: ITask, url: string): Promise<ExtractedPageData>;
 }
 
 export interface LinkData {
@@ -10,8 +10,9 @@ export interface LinkData {
 }
 
 export interface ExtractedPageData {
+  url: string;
   cleanedText: string;
-  // extractedHomePageText: string;
+  completePage: string;
   internalLinks?: LinkData[];
   externalLinks?: LinkData[];
   imageUrls?: LinkData[];
@@ -20,4 +21,15 @@ export interface ExtractedPageData {
   headings?: Record<string, string[]>;
   scriptUrls?: string[];
   stylesheetUrls?: string[];
+}
+
+export interface ProcessedPagesData {
+  url: string;
+  extractedPageData: ExtractedPageData;
+  processedData: string;
+}
+
+export interface ExtractedAndProcessedData {
+  extractedPageData: ExtractedPageData[];
+  processedData: string;
 }

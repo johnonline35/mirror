@@ -14,6 +14,9 @@ import { JobManagerModule } from './job-manager/job-manager.module';
 import { StructuredDataModule } from './structured-data/structured-data.module';
 import { ToolsModule } from './tools/tools.module';
 import { ComponentsRegistryModule } from './components-registry/components-registry.module';
+import { S3ManagerModule } from './common/utils/s3-manager/s3-manager.module';
+import { S3, SharedIniFileCredentials } from 'aws-sdk';
+import { AwsSdkModule } from 'nest-aws-sdk';
 
 @Module({
   imports: [
@@ -21,6 +24,16 @@ import { ComponentsRegistryModule } from './components-registry/components-regis
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
       ignoreEnvFile: process.env.NODE_ENV === 'production',
+    }),
+    S3ManagerModule,
+    AwsSdkModule.forRoot({
+      defaultServiceOptions: {
+        region: 'us-east-1',
+        credentials: new SharedIniFileCredentials({
+          profile: 'default', // Use the default profile from ~/.aws/credentials
+        }),
+      },
+      services: [S3],
     }),
     ComponentsRegistryModule,
     UtilitiesModule,
