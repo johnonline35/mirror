@@ -1,13 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { InjectAwsService } from 'nest-aws-sdk';
-import { S3 } from 'aws-sdk';
+import {
+  S3Client,
+  ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
+} from '@aws-sdk/client-s3';
 
 @Injectable()
 export class S3ManagerService {
-  constructor(@InjectAwsService(S3) private readonly s3: S3) {}
+  constructor(private s3Client: S3Client) {}
 
-  async listBucketContents(bucket: string) {
-    const response = await this.s3.listObjectsV2({ Bucket: bucket }).promise();
-    return response.Contents.map((c) => c.Key);
+  async listBucketContents(bucket: string): Promise<string[]> {
+    const command = new ListObjectsV2Command({ Bucket: bucket });
+
+    try {
+      const response: ListObjectsV2CommandOutput =
+        await this.s3Client.send(command);
+      return response.Contents?.map((c) => c.Key) || [];
+    } catch (error) {
+      console.error('Error listing bucket contents:', error);
+      throw error;
+    }
   }
 }

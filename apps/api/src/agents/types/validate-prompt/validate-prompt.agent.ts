@@ -44,7 +44,7 @@ export class ValidatePromptAgent implements IAgent {
       console.log(`Rendered prompt: ${taskPrompt}`);
 
       const llmOptions: LLMOptions = {
-        model: 'gpt-3.5-turbo-0125',
+        model: 'gpt-4o-mini-2024-07-18',
         maxTokens: 500,
         temperature: 0.3,
       };

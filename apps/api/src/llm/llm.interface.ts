@@ -163,7 +163,9 @@ export interface LLMOptions {
 // Define the maximum token limits for each provider
 const MAX_TOKENS: { [key in Models]: number } = {
   'gpt-3.5-turbo-0125': 4096,
-  'gpt-4o-2024-05-13': 8192,
+  'gpt-4o-mini-2024-07-18': 4096,
+  'gpt-4o-2024-05-13': 4096,
+  'gpt-4o-2024-08-06': 4096,
   'claude-3-opus-20240229': 9000,
   'claude-3-sonnet-20240229': 9000,
   'claude-3-haiku-20240307': 9000,

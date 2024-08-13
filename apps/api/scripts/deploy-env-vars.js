@@ -1,13 +1,22 @@
-const { exec } = require('child_process');
+/* eslint-disable @typescript-eslint/no-var-requires */
+const {
+  LambdaClient,
+  GetFunctionCommand,
+  GetFunctionConfigurationCommand,
+  UpdateFunctionConfigurationCommand,
+} = require('@aws-sdk/client-lambda');
 const dotenv = require('dotenv');
 const { readFileSync } = require('fs');
+const prepareLambdaPackage = require('./prepare-lambda-package');
 
 const configs = {
   staging: {
-    functionName: '',
+    functionName: 'ApiStaging-AnyCatchallHTTPLambda-xqZjAMsuoaIt',
+    bucketName: 'apistaging-staticbucket-vdz1x7klxfro',
   },
   production: {
-    functionName: '',
+    functionName: '', // You'll need to update this when you deploy to production
+    bucketName: 'production-api-lambda-bucket',
   },
 };
 
@@ -15,45 +24,59 @@ const run = async () => {
   const configName = process.argv.pop().replace('--', '');
   const config = configs[configName];
 
-  const contentResultsJson = await new Promise((resolve) => {
-    exec(
-      `aws lambda get-function-configuration --function-name ${config.functionName} --profile zipper`,
-      (err, stdout, stderr) => {
-        if (err) {
-          //some err occurred
-          console.error(err);
-        } else {
-          resolve(stdout);
-        }
-      },
+  const client = new LambdaClient({ region: 'us-east-1' });
+
+  try {
+    // Check if the function exists
+    const getFunctionCommand = new GetFunctionCommand({
+      FunctionName: config.functionName,
+    });
+
+    try {
+      await client.send(getFunctionCommand);
+      console.log(`Function ${config.functionName} exists.`);
+    } catch (error) {
+      if (error.name === 'ResourceNotFoundException') {
+        console.error(
+          `Function ${config.functionName} does not exist. Please create it first.`,
+        );
+        return;
+      }
+      throw error;
+    }
+    // Prepare and upload Lambda package
+    const s3Key = await prepareLambdaPackage(config.bucketName);
+
+    // Get current function configuration
+    const getFunctionConfigCommand = new GetFunctionConfigurationCommand({
+      FunctionName: config.functionName,
+    });
+    const currentConfig = await client.send(getFunctionConfigCommand);
+
+    // Read environment variables from .env file
+    const file = dotenv.parse(
+      readFileSync(__dirname + `/../.env.${configName}`),
     );
-  });
 
-  const file = dotenv.parse(readFileSync(__dirname + `/../.env.${configName}`));
-  const contentResults = JSON.parse(contentResultsJson);
+    // Merge current environment variables with new ones
+    const updatedEnvVars = {
+      ...currentConfig.Environment?.Variables,
+      ...file,
+    };
 
-  contentResults.Environment.Variables = {
-    ...contentResults.Environment.Variables,
-    ...file,
-  };
+    // Update function configuration
+    const updateFunctionCommand = new UpdateFunctionConfigurationCommand({
+      FunctionName: config.functionName,
+      Environment: { Variables: updatedEnvVars },
+      S3Bucket: config.bucketName,
+      S3Key: s3Key,
+    });
+    await client.send(updateFunctionCommand);
 
-  const envVarsJson = JSON.stringify({
-    Variables: contentResults.Environment.Variables,
-  });
-
-  await new Promise((resolve) => {
-    exec(
-      `aws lambda update-function-configuration --function-name ${config.functionName} --environment '${envVarsJson}' --profile zipper`,
-      (err, stdout) => {
-        if (err) {
-          //some err occurred
-          console.error(err);
-        } else {
-          resolve(stdout);
-        }
-      },
-    );
-  });
+    console.log('Function configuration and code updated successfully');
+  } catch (error) {
+    console.error('Error updating function:', error);
+  }
 };
 
 run();

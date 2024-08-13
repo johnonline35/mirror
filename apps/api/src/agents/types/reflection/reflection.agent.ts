@@ -53,7 +53,7 @@ export class ReflectionAgent implements IAgent {
       console.log(`Reflection plan template post render: ${reflectionPlan}`);
 
       const llmOptions: LLMOptions = {
-        model: 'gpt-3.5-turbo-0125',
+        model: 'gpt-4o-mini-2024-07-18',
         maxTokens: 1000,
         temperature: 1,
       };

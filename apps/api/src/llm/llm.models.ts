@@ -3,7 +3,11 @@
  * Models developed by OpenAI.
  * @company OpenAI
  */
-export type OpenAIModels = 'gpt-4o-2024-05-13' | 'gpt-3.5-turbo-0125';
+export type OpenAIModels =
+  | 'gpt-4o-2024-05-13'
+  | 'gpt-4o-2024-08-06'
+  | 'gpt-4o-mini-2024-07-18'
+  | 'gpt-3.5-turbo-0125';
 
 // Anthropic models - https://docs.anthropic.com/en/docs/models-overview
 /**

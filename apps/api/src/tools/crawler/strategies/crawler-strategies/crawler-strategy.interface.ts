@@ -1,7 +1,7 @@
 import { ITask } from '../../../../interfaces/task.interface';
 
 export interface ICrawlerStrategy {
-  execute(task: ITask, url: string): Promise<ExtractedPageData>;
+  execute(task: ITask, url: string): Promise<string>;
 }
 
 export interface LinkData {

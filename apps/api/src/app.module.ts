@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CrawlerModule } from './tools/crawler/crawler.module';
 import { LlmModule } from './llm/llm.module';
 import { UtilitiesModule } from './common/utils/utilities.module';
@@ -15,8 +14,9 @@ import { StructuredDataModule } from './structured-data/structured-data.module';
 import { ToolsModule } from './tools/tools.module';
 import { ComponentsRegistryModule } from './components-registry/components-registry.module';
 import { S3ManagerModule } from './common/utils/s3-manager/s3-manager.module';
-import { S3, SharedIniFileCredentials } from 'aws-sdk';
-import { AwsSdkModule } from 'nest-aws-sdk';
+import { LambdaModule } from './lambda/lambda.module';
+import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   imports: [
@@ -26,15 +26,6 @@ import { AwsSdkModule } from 'nest-aws-sdk';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     S3ManagerModule,
-    AwsSdkModule.forRoot({
-      defaultServiceOptions: {
-        region: 'us-east-1',
-        credentials: new SharedIniFileCredentials({
-          profile: 'default', // Use the default profile from ~/.aws/credentials
-        }),
-      },
-      services: [S3],
-    }),
     ComponentsRegistryModule,
     UtilitiesModule,
     CommonModule,
@@ -46,8 +37,14 @@ import { AwsSdkModule } from 'nest-aws-sdk';
     TaskDispatcherModule,
     JobManagerModule,
     StructuredDataModule,
+    LambdaModule,
+    GracefulShutdownModule.forRoot({
+      cleanup: async (a) => {
+        await a.get(PrismaService).$disconnect();
+      },
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService, DiscoveryService],
+  providers: [DiscoveryService],
 })
 export class AppModule {}
