@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { OpenAiService } from './llms/openai/openai.service';
-import { ClaudeService } from './llms/claude/claude.service';
-import { AdaptersModule } from './adapters/adapters.module';
+import { OpenAiService } from './llm-providers/openai/openai.service';
+import { ClaudeService } from './llm-providers/claude/claude.service';
 import { TemplatesService } from './templates/templates.service';
 
 @Module({
-  imports: [AdaptersModule],
+  imports: [],
   providers: [OpenAiService, ClaudeService, TemplatesService],
   exports: [OpenAiService, ClaudeService, TemplatesService],
 })

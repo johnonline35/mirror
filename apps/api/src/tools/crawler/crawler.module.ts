@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../../prisma/prisma.module';
 import { CommonModule } from '../../common/common.module';
 import { CrawlerService } from './crawler.service';
 import { LlmModule } from '../../llm/llm.module';
@@ -8,7 +7,7 @@ import { CrawlPuppeteerStrategy } from './strategies/crawler-strategies/crawl-pu
 import { LambdaModule } from '../../lambda/lambda.module';
 
 @Module({
-  imports: [PrismaModule, CommonModule, LlmModule, LambdaModule],
+  imports: [CommonModule, LlmModule, LambdaModule],
   providers: [CrawlerService, CrawlerStrategyFactory, CrawlPuppeteerStrategy],
   exports: [CrawlerService, CrawlerStrategyFactory, CrawlPuppeteerStrategy],
 })

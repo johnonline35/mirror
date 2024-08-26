@@ -1,5 +1,5 @@
 import { Models } from './llm.models';
-import { ChatCompletionTool } from './llms/openai/openai.service';
+import { ChatCompletionTool } from './llm-providers/openai/openai.service';
 
 export interface LLM {
   chatCompletion(messages: any[], options?: LLMOptions): Promise<string>;

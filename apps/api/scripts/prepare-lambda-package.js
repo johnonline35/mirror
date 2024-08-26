@@ -7,25 +7,25 @@ const execAsync = promisify(exec);
 
 const s3Client = new S3Client({ region: 'us-east-1' });
 
-async function listZipContents(zipFile) {
-  try {
-    const { stdout } = await execAsync(`unzip -l ${zipFile} | head -n 40`);
-    console.log('First 40 entries in zip file:');
-    console.log(stdout);
+// async function listZipContents(zipFile) {
+//   try {
+//     const { stdout } = await execAsync(`unzip -l ${zipFile} | head -n 40`);
+//     console.log('First 40 entries in zip file:');
+//     console.log(stdout);
 
-    const { stdout: totalFiles } = await execAsync(
-      `unzip -l ${zipFile} | wc -l`,
-    );
-    console.log(`Total number of files in zip: ${parseInt(totalFiles) - 4}`); // Subtract 4 for header and footer lines
+//     const { stdout: totalFiles } = await execAsync(
+//       `unzip -l ${zipFile} | wc -l`,
+//     );
+//     console.log(`Total number of files in zip: ${parseInt(totalFiles) - 4}`); // Subtract 4 for header and footer lines
 
-    const { stdout: totalSize } = await execAsync(
-      `unzip -l ${zipFile} | tail -n 1`,
-    );
-    console.log(`Total size of zip: ${totalSize.trim().split(/\s+/)[2]} bytes`);
-  } catch (error) {
-    console.error('Error listing zip contents:', error);
-  }
-}
+//     const { stdout: totalSize } = await execAsync(
+//       `unzip -l ${zipFile} | tail -n 1`,
+//     );
+//     console.log(`Total size of zip: ${totalSize.trim().split(/\s+/)[2]} bytes`);
+//   } catch (error) {
+//     console.error('Error listing zip contents:', error);
+//   }
+// }
 
 async function prepareLambdaPackage(bucketName) {
   if (!bucketName || typeof bucketName !== 'string') {
@@ -41,7 +41,7 @@ async function prepareLambdaPackage(bucketName) {
       maxBuffer: 50 * 1024 * 1024, // 50MB in bytes
     });
 
-    await listZipContents(zipFileName);
+    // await listZipContents(zipFileName);
 
     console.log('Uploading to S3...');
     const fileContent = await fs.readFile(zipFileName);

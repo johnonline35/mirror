@@ -11,8 +11,8 @@ const prepareLambdaPackage = require('./prepare-lambda-package');
 
 const configs = {
   staging: {
-    functionName: 'ApiStaging-AnyCatchallHTTPLambda-xqZjAMsuoaIt',
-    bucketName: 'apistaging-staticbucket-vdz1x7klxfro',
+    functionName: 'MirrorApiStaging-AnyCatchallHTTPLambda-qAwYxZtHoJb3',
+    bucketName: 'mirrorapistaging-staticbucket-fdcugfkhfnqh',
   },
   production: {
     functionName: '', // You'll need to update this when you deploy to production
@@ -64,6 +64,8 @@ const run = async () => {
       ...file,
     };
 
+    console.log('Updated Env:', updatedEnvVars);
+
     // Update function configuration
     const updateFunctionCommand = new UpdateFunctionConfigurationCommand({
       FunctionName: config.functionName,
@@ -72,6 +74,11 @@ const run = async () => {
       S3Key: s3Key,
     });
     await client.send(updateFunctionCommand);
+
+    console.log(
+      'Environment variables being sent to Lambda:',
+      JSON.stringify(updatedEnvVars, null, 2),
+    );
 
     console.log('Function configuration and code updated successfully');
   } catch (error) {

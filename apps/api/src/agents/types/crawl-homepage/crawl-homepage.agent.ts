@@ -6,6 +6,7 @@ import { RegisterAgent, AgentType } from '../../common/agent-registry';
 import { CrawlHomepageContext } from './crawl-homepage.interface';
 import { CrawlerService } from '../../../tools/crawler/crawler.service';
 import { ExtractedPageData } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
+import { CheerioUtilityService } from '../../../common/utils/cheerio/cheerio.service';
 
 @Injectable()
 @RegisterAgent(AgentType.CrawlHomepageAgent)
@@ -13,7 +14,10 @@ export class CrawlHomepageAgent implements IAgent {
   state: AgentState<CrawlHomepageContext & ITask>;
   protected readonly logger = new Logger(CrawlHomepageAgent.name);
 
-  constructor(private readonly crawlerService: CrawlerService) {}
+  constructor(
+    private readonly crawlerService: CrawlerService,
+    private readonly cheerioUtilityService: CheerioUtilityService,
+  ) {}
 
   private async initializeAgent(task: ITask): Promise<void> {
     this.state = new AgentState(task);
@@ -29,8 +33,16 @@ export class CrawlHomepageAgent implements IAgent {
     this.logger.log(`Executing: ${JSON.stringify(task)}`);
 
     try {
-      const homepageData = await this.crawlerService.execute(task);
-      this.state.context.homepageData = homepageData as ExtractedPageData;
+      // the crawler service executes an isolated puppeteer/chromium lambda and returns raw html
+      // this currently only returns an html string, not a puppeteer Page object
+      const rawHomepageHtml = await this.crawlerService.execute(task);
+      const parsedHtml =
+        await this.cheerioUtilityService.extractPageDataFromHtml(
+          rawHomepageHtml,
+          task.details.url,
+        );
+
+      this.state.context.homepageData = parsedHtml as ExtractedPageData;
       this.state.setExecuted();
       return this.state.context.homepageData;
     } catch (error) {

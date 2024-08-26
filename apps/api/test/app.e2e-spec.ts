@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, Logger } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { StructuredDataDto } from './../src/structured-data/dtos/structured-data.dto';
+import { StructuredDataDto } from './../src/endpoints/structured-data/dtos/structured-data.dto';
 
 describe('StructuredDataController (e2e)', () => {
   let app: INestApplication;

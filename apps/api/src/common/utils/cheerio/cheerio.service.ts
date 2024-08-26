@@ -9,7 +9,8 @@ import {
   ExtractedPageData,
   LinkData,
 } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
-import { Page } from '../puppeteer/puppeteer.service';
+// import { Page } from '../puppeteer/puppeteer.service';
+import { Page } from 'puppeteer';
 
 @Injectable()
 @TaskComponent(TaskComponentType.UTILITY)
@@ -241,6 +242,138 @@ export class CheerioUtilityService implements TaskComponents {
     });
 
     this.logger.log(`Extracted homepage data from URL`);
+
+    const extractedPageData: ExtractedPageData = {
+      url,
+      cleanedText,
+      metaTags,
+      title,
+      headings,
+      internalLinks,
+      externalLinks,
+      imageUrls,
+      scriptUrls,
+      stylesheetUrls,
+      completePage,
+    };
+
+    return extractedPageData;
+  }
+
+  async extractPageDataFromHtml(
+    html: string,
+    url: string,
+  ): Promise<ExtractedPageData> {
+    const $ = this.load(html);
+    const baseUrl = url;
+
+    const getBaseDomain = (url: string) => {
+      const hostname = new URL(url).hostname;
+      const parts = hostname.split('.').reverse();
+      if (parts.length >= 2) {
+        return parts[1] + '.' + parts[0];
+      }
+      return hostname;
+    };
+
+    const baseDomain = getBaseDomain(baseUrl);
+    const cleanedText = this.extractAndCleanText($);
+    const completePage = this.extractCompletePage($, baseUrl);
+
+    const uniqueInternalLinks = new Set<string>();
+    const uniqueExternalLinks = new Set<string>();
+    const internalLinks: LinkData[] = [];
+    const externalLinks: LinkData[] = [];
+    const uniqueImageUrls = new Set<string>();
+    const imageUrls: LinkData[] = [];
+    const uniqueScriptUrls = new Set<string>();
+    const scriptUrls: string[] = [];
+    const uniqueStylesheetUrls = new Set<string>();
+    const stylesheetUrls: string[] = [];
+    const metaTags: Record<string, string> = {};
+    const headings: Record<string, string[]> = {
+      H1: [],
+      H2: [],
+      H3: [],
+      H4: [],
+      H5: [],
+      H6: [],
+    };
+
+    $('a').each((_, el) => {
+      const href = $(el).attr('href');
+      const text = $(el).text().trim();
+      if (href) {
+        const resolvedUrl = new URL(href, baseUrl).href;
+        const resolvedDomain = getBaseDomain(resolvedUrl);
+
+        const linkData: LinkData = { url: resolvedUrl, name: text || href };
+        if (resolvedDomain === baseDomain) {
+          if (!uniqueInternalLinks.has(resolvedUrl)) {
+            uniqueInternalLinks.add(resolvedUrl);
+            internalLinks.push(linkData);
+          }
+        } else {
+          if (!uniqueExternalLinks.has(resolvedUrl)) {
+            uniqueExternalLinks.add(resolvedUrl);
+            externalLinks.push(linkData);
+          }
+        }
+      }
+    });
+
+    $('img').each((_, el) => {
+      const src = $(el).attr('src');
+      const alt = $(el).attr('alt');
+      const parentDivClass = $(el).closest('div').attr('class');
+      if (src && !uniqueImageUrls.has(src)) {
+        uniqueImageUrls.add(src);
+        imageUrls.push({
+          url: new URL(src, baseUrl).href,
+          name: alt || parentDivClass || '',
+        });
+      }
+    });
+
+    $('meta').each((_, el) => {
+      const name = $(el).attr('name') || $(el).attr('property');
+      const content = $(el).attr('content');
+      if (name && content) {
+        metaTags[name] = content;
+      }
+    });
+
+    const title = $('title').text().trim();
+
+    Object.keys(headings).forEach((tag) => {
+      $(tag).each((_, el) => {
+        headings[tag].push($(el).text().trim());
+      });
+    });
+
+    $('script').each((_, el) => {
+      const src = $(el).attr('src');
+      if (src) {
+        const resolvedUrl = new URL(src, baseUrl).href;
+        if (!uniqueScriptUrls.has(resolvedUrl)) {
+          uniqueScriptUrls.add(resolvedUrl);
+          scriptUrls.push(resolvedUrl);
+        }
+      }
+    });
+
+    $('link[rel="stylesheet"]').each((_, el) => {
+      const href = $(el).attr('href');
+      if (href) {
+        const resolvedUrl = new URL(href, baseUrl).href;
+        if (!uniqueStylesheetUrls.has(resolvedUrl)) {
+          uniqueStylesheetUrls.add(resolvedUrl);
+          stylesheetUrls.push(resolvedUrl);
+        }
+      }
+    });
+
+    this.logger.log(`Extracted homepage data from URL: ${url}`);
 
     const extractedPageData: ExtractedPageData = {
       url,

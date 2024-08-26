@@ -1,6 +1,4 @@
 import Handlebars from 'handlebars';
-import { AdapterFactory } from '../adapters/adapterFactory';
-import { LLMOptions } from '../llm.interface';
 
 export abstract class BaseTemplate {
   protected template: string;
@@ -29,11 +27,6 @@ export abstract class BaseTemplate {
   validate(): boolean {
     // TODO add validation logic
     return true;
-  }
-
-  adaptForLLM(prompt: string, options: LLMOptions): any {
-    const adapter = AdapterFactory.getAdapter(options.model);
-    return adapter.adapt(prompt, options);
   }
 
   getVersion(): string {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../common/utils/prisma/prisma.service';
 import { ITask } from '../interfaces/task.interface';
 import { WorkflowService } from '../workflow/workflow.service';
 import { IJobManagerService } from './job-manager-service.interface';

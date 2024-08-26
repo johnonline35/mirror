@@ -5,7 +5,7 @@ import { IAgent } from '../../common/agent.interface';
 import { RegisterAgent, AgentType } from '../../common/agent-registry';
 import { TemplatesService } from '../../../llm/templates/templates.service';
 import { LLMOptions } from '../../../llm/llm.interface';
-import { OpenAiService } from '../../../llm/llms/openai/openai.service';
+import { OpenAiService } from '../../../llm/llm-providers/openai/openai.service';
 import { ExtractedDataContext } from './data-extraction-and-inference.interface';
 import { ExtractedPageData } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
 

@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { PuppeteerUtilityService } from './puppeteer/puppeteer.service';
+// import { PuppeteerUtilityService } from './puppeteer/puppeteer.service';
 import { CheerioUtilityService } from './cheerio/cheerio.service';
 import { GoogleSearchUtilityService } from './googlesearch/google-search.service';
 import { ParsePromptService } from './parsing/parse-prompt.service';
@@ -11,7 +11,7 @@ import { JsonExtractionService } from './json-extraction-from-text/json-extracti
 @Global()
 @Module({
   providers: [
-    PuppeteerUtilityService,
+    // PuppeteerUtilityService,
     CheerioUtilityService,
     GoogleSearchUtilityService,
     ParsePromptService,
@@ -21,7 +21,7 @@ import { JsonExtractionService } from './json-extraction-from-text/json-extracti
     JsonExtractionService,
   ],
   exports: [
-    PuppeteerUtilityService,
+    // PuppeteerUtilityService,
     CheerioUtilityService,
     GoogleSearchUtilityService,
     ParsePromptService,
