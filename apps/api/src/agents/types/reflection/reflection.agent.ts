@@ -66,12 +66,16 @@ export class ReflectionAgent implements IAgent {
       //   `Received site crawling plan from LLM: ${JSON.stringify(plan)}`,
       // );
 
-      this.state.setContext({ reflection } as Partial<ReflectionContext>);
+      this.state.context.reflection = reflection as ReflectionContext;
       this.state.setExecuted();
       return this.state.context.reflection;
     } catch (error) {
       this.handleError(error, this.state.context);
       throw error;
+    } finally {
+      if (this.state) {
+        this.state.resetState();
+      }
     }
   }
 

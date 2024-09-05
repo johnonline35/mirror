@@ -11,7 +11,10 @@ export class ParsePromptService {
   } {
     try {
       // Log the received JSON string for debugging
-      this.logger.log(`Received prompt review JSON: ${context.promptReview}`);
+      this.logger.log(
+        'Received prompt review JSON:',
+        JSON.stringify(context.promptReview),
+      );
 
       // Attempt to parse the JSON string
       const parsedReview = JSON.parse(context.promptReview);

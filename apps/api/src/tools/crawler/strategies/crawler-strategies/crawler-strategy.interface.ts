@@ -25,11 +25,9 @@ export interface ExtractedPageData {
 
 export interface ProcessedPagesData {
   url: string;
-  extractedPageData: ExtractedPageData;
   processedData: string;
 }
 
 export interface ExtractedAndProcessedData {
-  extractedPageData: ExtractedPageData[];
   processedData: string;
 }

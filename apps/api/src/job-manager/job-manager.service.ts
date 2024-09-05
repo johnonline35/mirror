@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../common/utils/prisma/prisma.service';
+import { PrismaService } from '../common/services/prisma/prisma.service';
 import { ITask } from '../interfaces/task.interface';
 import { WorkflowService } from '../workflow/workflow.service';
 import { IJobManagerService } from './job-manager-service.interface';
+import { S3ManagerService } from '../common/services/s3-manager/s3-manager.service';
 
 @Injectable()
 export class JobManagerService implements IJobManagerService {
@@ -11,26 +12,44 @@ export class JobManagerService implements IJobManagerService {
   constructor(
     private prisma: PrismaService,
     private workflowService: WorkflowService,
+    private s3ManagerService: S3ManagerService,
   ) {}
 
-  async createJob(task: ITask): Promise<any> {
+  async createJob(task: ITask, clientId?: string): Promise<any> {
     this.logger.log(`Creating job for task: ${JSON.stringify(task.details)}`);
+
+    const data: any = {
+      status: 'started',
+      url: task.details.url,
+    };
+
     const job = await this.prisma.job.create({
-      data: {
-        status: 'started',
-        url: task.details.url,
-      },
+      data,
     });
 
-    const jobResult = await this.executeJob(job.jobId, task);
+    // Associate job with client if clientId is provided
+    if (clientId) {
+      await this.associateJobWithClient(job.jobId, clientId);
+    }
 
-    return { jobId: job.jobId, result: jobResult };
+    return { jobId: job.jobId };
   }
 
-  private async executeJob(jobId: string, task: ITask): Promise<any> {
+  async executeJobInBackground(jobId: string, task: ITask): Promise<any> {
+    await this.updateJobStatus(jobId, 'in-progress');
     try {
       const result = await this.workflowService.handle(task);
-      await this.updateJobStatus(jobId, 'done', result);
+
+      // Upload the result JSON to S3
+      const bucketName = 'client-results-json';
+      const key = `jobs/${jobId}/result.json`;
+      const s3Url = await this.s3ManagerService.uploadToS3(
+        bucketName,
+        key,
+        result,
+      );
+
+      await this.updateJobStatus(jobId, 'completed', s3Url);
       return result;
     } catch (error) {
       this.logger.error(`Job execution failed for job ${jobId}:`, error);
@@ -42,12 +61,12 @@ export class JobManagerService implements IJobManagerService {
   async updateJobStatus(
     jobId: string,
     status: string,
-    data?: any,
+    s3Url?: any,
   ): Promise<any> {
     this.logger.log(`Updating job status for ${jobId} to ${status}`);
     const dataToUpdate = {
       status,
-      data,
+      s3Url,
     };
     try {
       return await this.prisma.job.update({
@@ -67,5 +86,24 @@ export class JobManagerService implements IJobManagerService {
     return await this.prisma.job.findUnique({
       where: { jobId },
     });
+  }
+
+  async associateJobWithClient(jobId: string, clientId: string): Promise<void> {
+    this.logger.log(`Associating job ${jobId} with client ${clientId}`);
+    try {
+      await this.prisma.job.update({
+        where: { jobId },
+        data: { clientId },
+      });
+      this.logger.log(
+        `Successfully associated job ${jobId} with client ${clientId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to associate job ${jobId} with client ${clientId}`,
+        error.stack,
+      );
+      throw error;
+    }
   }
 }

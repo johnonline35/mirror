@@ -6,6 +6,7 @@ import { RegisterAgent, AgentType } from '../../common/agent-registry';
 import { CrawlPageContext } from './crawl-page.interface';
 import { CrawlerService } from '../../../tools/crawler/crawler.service';
 import { ExtractedPageData } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
+import { CheerioUtilityService } from '../../../common/utils/cheerio/cheerio.service';
 
 @Injectable()
 @RegisterAgent(AgentType.CrawlPageAgent)
@@ -13,14 +14,15 @@ export class CrawlPageAgent implements IAgent {
   state: AgentState<CrawlPageContext & ITask>;
   protected readonly logger = new Logger(CrawlPageAgent.name);
 
-  constructor(private readonly crawlerService: CrawlerService) {}
+  constructor(
+    private readonly crawlerService: CrawlerService,
+    private readonly cheerioUtilityService: CheerioUtilityService,
+  ) {}
 
   private async initializeAgent(task: ITask): Promise<void> {
     this.state = new AgentState(task);
     this.state.setInitialized();
-    this.logger.log(
-      `Initializing CrawlHomepageAgent with task: ${JSON.stringify(task)}`,
-    );
+    this.logger.log(`Initializing CrawlPageAgent`);
   }
 
   async execute(task: ITask, url: string): Promise<CrawlPageContext> {
@@ -29,13 +31,27 @@ export class CrawlPageAgent implements IAgent {
     this.logger.log(`Executing: ${JSON.stringify(task)}`);
 
     try {
-      const pageData = await this.crawlerService.execute(task, url);
-      this.state.context.pageData = pageData as ExtractedPageData;
+      const finalUrl = url || task.details.url;
+
+      const rawPageHtml = await this.crawlerService.execute(task, url);
+
+      const parsedHtml =
+        await this.cheerioUtilityService.extractPageDataFromHtml(
+          rawPageHtml,
+          finalUrl,
+        );
+
+      this.state.context.individualPageDataObject =
+        parsedHtml as ExtractedPageData;
       this.state.setExecuted();
-      return this.state.context.pageData;
+      return this.state.context.individualPageDataObject;
     } catch (error) {
       await this.handleError(error, this.state.context);
       throw error;
+    } finally {
+      if (this.state) {
+        this.state.resetState();
+      }
     }
   }
 

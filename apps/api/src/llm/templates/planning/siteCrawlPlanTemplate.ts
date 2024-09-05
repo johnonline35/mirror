@@ -1,4 +1,4 @@
-import { BaseTemplate } from '../../baseTemplate';
+import { BaseTemplate } from '../baseTemplate';
 
 // Template versions
 const CRAWL_PLAN_TEMPLATE_V2 = `

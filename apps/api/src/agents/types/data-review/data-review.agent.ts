@@ -26,9 +26,7 @@ export class DataReviewAgent implements IAgent {
   private async initializeAgent(task: ITask): Promise<void> {
     this.state = new AgentState(task);
     this.state.setInitialized();
-    this.logger.log(
-      `Initializing DataReviewAgent with task: ${JSON.stringify(task)}`,
-    );
+    this.logger.log(`Initializing DataReviewAgent}`);
   }
 
   async execute(
@@ -37,11 +35,15 @@ export class DataReviewAgent implements IAgent {
   ): Promise<ReviewedDataContext> {
     this.initializeAgent(task);
 
-    this.logger.log(`Executing: ${JSON.stringify(task)}`);
+    // this.logger.log(`Executing: ${JSON.stringify(task)}`);
+
+    this.logger.log(
+      `Processed Pages Data: ${JSON.stringify(processedPagesData)}`,
+    );
 
     try {
       const dataReviewTemplate =
-        this.templatesService.getDataReviewTemplate('1.0');
+        this.templatesService.getDataReviewTemplate('2.0');
       const dataReviewPrompt = dataReviewTemplate.render({
         task: task,
         processedPagesData: processedPagesData,
@@ -55,18 +57,23 @@ export class DataReviewAgent implements IAgent {
         temperature: 0.3,
       };
 
-      const processedData = await this.openAiService.adapt(
+      const llmResponseString = await this.openAiService.adapt(
         dataReviewPrompt,
         llmOptions,
       );
-      console.log('processedData in form of schema:', processedData);
+      console.log('processedData in form of schema:', llmResponseString);
 
-      this.state.setContext({ processedData } as Partial<ReviewedDataContext>);
+      this.state.context.processedData =
+        llmResponseString as ReviewedDataContext;
       this.state.setExecuted();
-      return this.state.context;
+      return this.state.context.processedData;
     } catch (error) {
       this.handleError(error, this.state.context);
       throw error;
+    } finally {
+      if (this.state) {
+        this.state.resetState();
+      }
     }
   }
 

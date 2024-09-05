@@ -1,4 +1,4 @@
-export interface ExtractedDataContext<T = any> {
+export interface ExtractedPageDataContext<T = any> {
   url?: string;
-  jsonifiedData?: T;
+  extractedPageDataJson?: T;
 }

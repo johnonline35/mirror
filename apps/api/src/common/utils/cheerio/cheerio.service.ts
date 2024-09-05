@@ -241,7 +241,7 @@ export class CheerioUtilityService implements TaskComponents {
       }
     });
 
-    this.logger.log(`Extracted homepage data from URL`);
+    this.logger.log(`Extracted data from URL`);
 
     const extractedPageData: ExtractedPageData = {
       url,
@@ -373,7 +373,7 @@ export class CheerioUtilityService implements TaskComponents {
       }
     });
 
-    this.logger.log(`Extracted homepage data from URL: ${url}`);
+    this.logger.log(`Extracted data from URL: ${url}`);
 
     const extractedPageData: ExtractedPageData = {
       url,

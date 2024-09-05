@@ -1,4 +1,4 @@
-import { BaseTemplate } from '../../baseTemplate';
+import { BaseTemplate } from '../../templates/baseTemplate';
 
 // Template versions
 const REFLECTION_TEMPLATE_V2 = `

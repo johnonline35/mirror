@@ -1,9 +1,9 @@
 import { BaseTemplate } from './baseTemplate';
 import { CategoryClassificationTemplate } from './classification/categoryClassificationTemplate';
-import { SiteCrawlPlanTemplate } from './agent-behaviors/planning/siteCrawlPlanTemplate';
+import { SiteCrawlPlanTemplate } from './planning/siteCrawlPlanTemplate';
 import { HomePageSummarizationTemplate } from './summarization/contentSummarizationTemplate';
 import { PromptReviewTemplate } from './validation/promptReviewTemplate';
-import { ReflectionTemplate } from './agent-behaviors/reflection/reflectionTemplate';
+import { ReflectionTemplate } from './reflection/reflectionTemplate';
 import { StructuredDataExtractionTemplate } from './extraction/structuredDataExtractionTemplate';
 import { StructuredReviewedDataTemplate } from './final-output/structuredReviewedData';
 

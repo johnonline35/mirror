@@ -7,7 +7,7 @@ profile default
 runtime nodejs20.x
 architecture x86_64
 memory 2048
-timeout 720
+timeout 900
 
 @http
 /*

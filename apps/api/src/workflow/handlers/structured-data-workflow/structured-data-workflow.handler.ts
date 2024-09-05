@@ -9,7 +9,6 @@ import { UrlExtractorService } from '../../../common/utils/parsing/url-extractor
 import {
   ExtractedPageData,
   ProcessedPagesData,
-  ExtractedAndProcessedData,
 } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
 import { ConcurrentPageDataService } from '../../../common/utils/concurrency/concurrency-handler.service';
 import { JsonExtractionService } from '../../../common/utils/json-extraction-from-text/json-extraction.service';
@@ -42,14 +41,14 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
         this.parsePromptService.parsePromptReview(promptReview);
 
       if (canCompleteTask.success) {
-        this.logger.log('Task can be successfully completed:', task);
+        this.logger.log(
+          'Task can be successfully completed:',
+          JSON.stringify(task),
+        );
 
         // Extract all data from the homepage into ExtractedPageData object
         const homepageData: ExtractedPageData =
-          await this.taskDispatcher.dispatch(
-            task,
-            AgentType.CrawlHomepageAgent,
-          );
+          await this.taskDispatcher.dispatch(task, AgentType.CrawlPageAgent);
 
         // Given the users task, generate a list of pages to visit to complete the task
         const siteCrawlPlan = await this.taskDispatcher.dispatch(
@@ -60,14 +59,6 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
 
         console.log('siteCrawlPlan', siteCrawlPlan);
 
-        // const reflectionOnSiteCrawlPlan = await this.taskDispatcher.dispatch(
-        //   task,
-        //   AgentType.ReflectionAgent,
-        //   { internalLinks },
-        // );
-
-        // console.log('reflectionOnSiteCrawlPlan:', reflectionOnSiteCrawlPlan);
-
         const urls = this.urlExtractorService.extractUrls(siteCrawlPlan.plan);
 
         console.log('urls', urls);
@@ -75,19 +66,22 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
         // Extract data from each url/page
         const extractedPagesData: ExtractedPageData[] =
           await this.executeAgentConcurrently<string, ExtractedPageData>(
-            urls.slice(0, 1),
+            urls.slice(0, 5),
             // urls,
             task,
             AgentType.CrawlPageAgent,
-            3, // concurrency limit
+            5, // concurrency limit
           );
+
+        // Concatenate the homepageData into extractedPagesData
+        extractedPagesData.unshift(homepageData);
 
         console.log('extractedPagesData:');
         extractedPagesData.forEach((data, index) => {
           console.log(`Result ${index + 1}:`, data);
         });
 
-        const processedPagesData: ProcessedPagesData[] =
+        const llmProcessedPagesData: ProcessedPagesData[] =
           await this.executeAgentConcurrently<
             ExtractedPageData,
             ProcessedPagesData
@@ -95,45 +89,46 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
             extractedPagesData,
             task,
             AgentType.DataExtractionAndInferenceAgent,
-            3, // concurrency limit
+            5, // concurrency limit
           );
 
-        processedPagesData.forEach((data, index) => {
+        llmProcessedPagesData.forEach((data, index) => {
           console.log(`processedPagesData object ${index + 1}:`, data);
         });
 
-        const extractedAndProcessedData: ExtractedAndProcessedData =
+        const llmFinalExtractedAndProcessedData: string =
           await this.taskDispatcher.dispatch(
             task,
             AgentType.DataReviewAgent,
-            processedPagesData,
+            llmProcessedPagesData,
           );
 
-        console.log('processedData:', extractedAndProcessedData.processedData);
+        console.log('processedData:', llmFinalExtractedAndProcessedData);
 
-        const json = this.jsonExtractionService.extractValidJson(
-          extractedAndProcessedData.processedData,
+        const resultJson = this.jsonExtractionService.extractValidJson(
+          llmFinalExtractedAndProcessedData,
         );
 
-        console.log('final json', JSON.stringify(json));
+        console.log(
+          '************final json************',
+          JSON.stringify(resultJson),
+        );
 
-        // const outputData write to s3?
+        // TODO: output data to s3 bucket
         // pre signed url?
-        //
 
         return {
           success: true,
           feedback: canCompleteTask.feedback,
           // resultData: homepageData,
-          resultData: json,
+          resultData: resultJson,
         };
       } else {
-        // TODO handle the cannot be crawled use case
         this.logger.warn(`Feedback: ${canCompleteTask.feedback}`);
         return {
           success: false,
           feedback: canCompleteTask.feedback,
-          resultData: 'none',
+          resultData: [],
         };
       }
     } catch (error) {

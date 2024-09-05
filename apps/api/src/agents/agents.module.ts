@@ -5,7 +5,6 @@ import { ToolsModule } from '../tools/tools.module';
 import { getAgentProviders } from './common/agent-registry';
 import { AgentsService } from './agents.service';
 import { ValidatePromptAgent } from './types/validate-prompt/validate-prompt.agent';
-import { CrawlHomepageAgent } from './types/crawl-homepage/crawl-homepage.agent';
 import { CrawlSitePlanningAgent } from './types/crawl-site-planning/crawl-site-planning.agent';
 import { CrawlPageAgent } from './types/crawl-page/crawl-page.agent';
 import { DataExtractionAndInferenceAgent } from './types/data-extraction-and-inference/data-extraction-and-inference.agent';
@@ -16,7 +15,6 @@ import { DataReviewAgent } from './types/data-review/data-review.agent';
   providers: [
     AgentsService,
     ValidatePromptAgent,
-    CrawlHomepageAgent,
     CrawlPageAgent,
     CrawlSitePlanningAgent,
     DataExtractionAndInferenceAgent,

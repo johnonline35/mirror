@@ -10,7 +10,6 @@ import {
   CrawlSitePlanningContext,
   LlmCrawlingPlan,
 } from './crawl-site-planning.interface';
-// import { ReflectionAgent } from '../reflection/reflection.agent';
 
 @Injectable()
 @RegisterAgent(AgentType.CrawlSitePlanningAgent)
@@ -21,7 +20,6 @@ export class CrawlSitePlanningAgent implements IAgent {
   constructor(
     private readonly templatesService: TemplatesService,
     private readonly openAiService: OpenAiService,
-    // private readonly reflectionAgent: ReflectionAgent,
   ) {}
 
   private async initializeAgent(task: ITask): Promise<void> {
@@ -65,20 +63,16 @@ export class CrawlSitePlanningAgent implements IAgent {
       );
       console.log(`Received site crawling plan from LLM: ${initialPlan}`);
 
-      // const reflectionContext = await this.reflectionAgent.execute(
-      //   task,
-      //   initialPlan,
-      //   homepageData,
-      // );
-
-      // console.log('reflectionContext:', reflectionContext);
-
       this.state.context.plan = initialPlan as LlmCrawlingPlan;
       this.state.setExecuted();
       return this.state.context;
     } catch (error) {
       this.handleError(error, this.state.context);
       throw error;
+    } finally {
+      if (this.state) {
+        this.state.resetState();
+      }
     }
   }
 

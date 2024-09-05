@@ -6,7 +6,7 @@ import { Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { QuietStartupLogger } from './quiet-logger';
-import { setupGracefulShutdown } from 'nestjs-graceful-shutdown';
+// import { setupGracefulShutdown } from 'nestjs-graceful-shutdown';
 
 export async function bootstrap(
   enableOpenApi: boolean,
@@ -15,6 +15,7 @@ export async function bootstrap(
   // CORS is enabled
   const app = await NestFactory.create(AppModule, {
     cors: true,
+    snapshot: true,
     logger: new QuietStartupLogger(true),
     bodyParser: false,
   });
@@ -109,7 +110,7 @@ export async function bootstrap(
   // Request Validation
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  setupGracefulShutdown({ app });
+  // setupGracefulShutdown({ app });
 
   return app;
 }

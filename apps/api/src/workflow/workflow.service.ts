@@ -10,7 +10,7 @@ export class WorkflowService {
 
   async handle(task: ITask) {
     try {
-      this.logger.log('Handling task:', task);
+      this.logger.log('Handling task:', JSON.stringify(task));
       const handler = this.workflowFactory.getWorkflowHandler(task);
       const result = await handler.handle(task);
       this.logger.log('Successfully processed task.');

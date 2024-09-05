@@ -63,6 +63,10 @@ export class ValidatePromptAgent implements IAgent {
     } catch (error) {
       this.handleError(error, this.state.context);
       throw error;
+    } finally {
+      if (this.state) {
+        this.state.resetState();
+      }
     }
   }
 

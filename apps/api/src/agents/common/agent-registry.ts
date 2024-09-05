@@ -36,8 +36,7 @@ export function getAgentProviders(): Provider[] {
 }
 
 export enum AgentType {
-  CrawlHomepageAgent = 'CRAWL_HOMEPAGE_AGENT',
-  CrawlPageAgent = 'CrawlPageAgent',
+  CrawlPageAgent = 'CRAWL_PAGE_AGENT',
   CrawlSitePlanningAgent = 'CRAWL_SITE_PLANNING_AGENT',
   DataExtractionAndInferenceAgent = 'DATA_EXTRACTION_AND_INFERENCE_AGENT',
   DataReviewAgent = 'DATA_REVIEW_AGENT',

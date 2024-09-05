@@ -11,18 +11,9 @@ export class StructuredDataService {
     private readonly componentsRegistryService: ComponentsRegistryService,
   ) {}
 
-  async handle(requestDto: StructuredDataDto) {
+  async startJobAsync(requestDto: StructuredDataDto, clientId?: string) {
     const { prompt, url, schema } = requestDto;
-
-    let schemaString: string;
-    try {
-      schemaString =
-        typeof schema === 'string' ? schema : JSON.stringify(schema);
-    } catch (error) {
-      throw new Error('Failed to stringify the schema');
-    }
-
-    console.log('schemaString', schemaString);
+    const schemaString = this.stringifySchema(schema);
 
     const tools = this.componentsRegistryService.getComponentsByType(
       TaskComponentType.TOOL,
@@ -33,32 +24,31 @@ export class StructuredDataService {
 
     const task: ITask = {
       type: 'structured-data-extraction',
-      details: {
-        prompt,
-        url,
-        schema: schemaString,
-      },
-      goal: `Your task is to extract structured data from the provided unstructured text. The data should be formatted as per the schema defined by the user. If the schema is not correctly formated but it is clear what the user wants, then correct the schema but retain as closely as possible what the user wants. The specified user-defined schema is as follows: ${schemaString}.`,
+      details: { prompt, url, schema: schemaString },
+      goal: `Your task is to extract structured data from the provided unstructured text...`,
       components: [...tools, ...utilities],
     };
-    // TODO:
-    // const invoke = async (funcName, payload) => {
-    //   const client = new LambdaClient({});
-    //   const command = new InvokeCommand({
-    //     FunctionName: funcName,
-    //     Payload: JSON.stringify(payload),
-    //     LogType: LogType.Tail,
-    //   });
-    //   const { Payload, LogResult } = await client.send(command);
-    //   const result = Buffer.from(Payload).toString();
-    //   const logs = Buffer.from(LogResult, 'base64').toString();
-    //   return { logs, result };
-    // };
-    const jobResult = await this.jobManagerService.createJob(task);
-    return { jobId: jobResult.jobId, result: jobResult.result };
+
+    // Create the job entry and return the jobId immediately
+    const job = await this.jobManagerService.createJob(task, clientId);
+
+    // TODO: create job queue (e.g., Bull or Redis Queue).
+    // e.g await this.jobQueue.add('execute', { jobId: job.jobId, task });
+
+    setTimeout(
+      () => this.jobManagerService.executeJobInBackground(job.jobId, task),
+      0,
+    );
+
+    // Return the job ID immediately
+    return { jobId: job.jobId };
   }
 
-  async getJobStatus(jobId: string) {
-    return this.jobManagerService.getJobStatus(jobId);
+  private stringifySchema(schema: any): string {
+    try {
+      return typeof schema === 'string' ? schema : JSON.stringify(schema);
+    } catch (error) {
+      throw new Error('Failed to stringify the schema');
+    }
   }
 }

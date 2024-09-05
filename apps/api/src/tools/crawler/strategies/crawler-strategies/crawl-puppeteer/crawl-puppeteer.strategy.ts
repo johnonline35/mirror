@@ -10,7 +10,8 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
   constructor(private lambdaService: LambdaService) {}
 
   async execute(task: ITask, url?: string): Promise<string> {
-    this.logger.log('Executing task:', task);
+    this.logger.log('Executing task:', JSON.stringify(task));
+
     const targetUrl = url || task.details.url;
     const html = this.crawlUrl(targetUrl);
     return html;
@@ -30,10 +31,11 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
   private async crawlUrlWithLambda(url: string): Promise<string> {
     try {
       const result = await this.lambdaService.invokeLambda(
-        `MirrorPuppeteerApiStaging-AnyCatchallHTTPLambda-vwTheN138Qpp`,
+        `PuppeteerApiStaging-AnyCatchallHTTPLambda-EJUtt6mngdvz`,
         { url },
       );
-      console.log('result:', result);
+      const resultSnippet = result.html.substring(0, 200);
+      console.log('resultSnippet:', resultSnippet);
 
       return result.html;
     } catch (error) {

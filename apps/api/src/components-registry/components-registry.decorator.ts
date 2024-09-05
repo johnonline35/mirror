@@ -1,41 +1,50 @@
-import { Provider, Type } from '@nestjs/common';
+import { SetMetadata } from '@nestjs/common';
 import { TaskComponentType } from '../interfaces/task.interface';
 
-const registry = new Map<TaskComponentType, Type>();
+export const TASK_COMPONENT_KEY = 'TASK_COMPONENT_KEY';
 
 export function TaskComponent(taskComponentType: TaskComponentType) {
-  return function (constructor: any) {
-    registry.set(taskComponentType, constructor);
-  };
+  return SetMetadata(TASK_COMPONENT_KEY, taskComponentType);
 }
 
-export function createTaskComponentSymbol(
-  taskComponentType: TaskComponentType,
-  typeName: string,
-) {
-  return `TASKCOMPONENT_${taskComponentType}_${typeName}`;
-}
+// import { Provider, Type } from '@nestjs/common';
+// import { TaskComponentType } from '../interfaces/task.interface';
 
-export const createTaskComponentRegistrySymbol = () => `TASKCOMPONENT_REGISTRY`;
+// const registry = new Map<TaskComponentType, Type>();
 
-export function getTaskComponentProviders(): Provider[] {
-  const providers: Provider[] = [];
+// export function TaskComponent(taskComponentType: TaskComponentType) {
+//   return function (constructor: any) {
+//     registry.set(taskComponentType, constructor);
+//   };
+// }
 
-  const providerKeys: Set<string> = new Set();
-  for (const [type, taskComponent] of registry.entries()) {
-    const provide = createTaskComponentSymbol(type, taskComponent.name);
-    providers.push({
-      provide,
-      useClass: taskComponent,
-    });
+// export function createTaskComponentSymbol(
+//   taskComponentType: TaskComponentType,
+//   typeName: string,
+// ) {
+//   return `TASKCOMPONENT_${taskComponentType}_${typeName}`;
+// }
 
-    providerKeys.add(provide);
-  }
+// export const createTaskComponentRegistrySymbol = () => `TASKCOMPONENT_REGISTRY`;
 
-  providers.push({
-    provide: createTaskComponentRegistrySymbol(),
-    useValue: providerKeys,
-  });
+// export function getTaskComponentProviders(): Provider[] {
+//   const providers: Provider[] = [];
 
-  return providers;
-}
+//   const providerKeys: Set<string> = new Set();
+//   for (const [type, taskComponent] of registry.entries()) {
+//     const provide = createTaskComponentSymbol(type, taskComponent.name);
+//     providers.push({
+//       provide,
+//       useClass: taskComponent,
+//     });
+
+//     providerKeys.add(provide);
+//   }
+
+//   providers.push({
+//     provide: createTaskComponentRegistrySymbol(),
+//     useValue: providerKeys,
+//   });
+
+//   return providers;
+// }

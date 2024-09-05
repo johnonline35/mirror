@@ -6,7 +6,7 @@ import {
   ChatCompletionMessageParam,
   ChatCompletionFunctionCallOption,
 } from 'openai/resources';
-import { PrismaService } from '../../../common/utils/prisma/prisma.service';
+import { PrismaService } from '../../../common/services/prisma/prisma.service';
 import { LLM, LLMOptions } from '../../llm.interface';
 
 export type ChatCompletionTool = OpenAIChatCompletionTool;
@@ -26,7 +26,7 @@ export class OpenAiService implements LLM {
     });
   }
 
-  adapt(prompt: string, options?: LLMOptions) {
+  adapt(prompt: string, options?: LLMOptions): Promise<string> {
     return this.chatCompletion([{ role: 'user', content: prompt }], options);
   }
 
@@ -52,13 +52,15 @@ export class OpenAiService implements LLM {
       const duration = Date.now() - startTime;
       const tokenUsage = response.usage;
 
-      this.logger.log({
-        message: 'Token usage',
-        caller: callerDetails,
-        tokenUsage: tokenUsage,
-        options: options,
-        duration: `${duration}ms`,
-      });
+      this.logger.log(
+        JSON.stringify({
+          message: 'Token usage',
+          caller: callerDetails,
+          tokenUsage: tokenUsage,
+          options: options,
+          duration: `${duration}ms`,
+        }),
+      );
 
       await this.logTokenUsage(
         messages,
