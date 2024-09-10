@@ -53,7 +53,9 @@ export class ParsePromptService {
     } catch (error) {
       // Log the error and the received JSON string for better debugging
       this.logger.error('Failed to parse prompt review JSON', error);
-      this.logger.error(`Invalid JSON: ${context.promptReview}`);
+      this.logger.error(
+        `Invalid JSON: ${JSON.stringify(context.promptReview)}`,
+      );
       return {};
     }
   }

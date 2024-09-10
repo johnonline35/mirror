@@ -63,14 +63,16 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
 
         console.log('urls', urls);
 
+        const shortenedUrls = urls.slice(0, 5);
+
         // Extract data from each url/page
         const extractedPagesData: ExtractedPageData[] =
           await this.executeAgentConcurrently<string, ExtractedPageData>(
-            urls.slice(0, 5),
+            shortenedUrls,
             // urls,
             task,
             AgentType.CrawlPageAgent,
-            5, // concurrency limit
+            10, // concurrency limit
           );
 
         // Concatenate the homepageData into extractedPagesData
@@ -114,14 +116,12 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
           JSON.stringify(resultJson),
         );
 
-        // TODO: output data to s3 bucket
-        // pre signed url?
-
         return {
           success: true,
           feedback: canCompleteTask.feedback,
           // resultData: homepageData,
           resultData: resultJson,
+          urlsVisited: shortenedUrls,
         };
       } else {
         this.logger.warn(`Feedback: ${canCompleteTask.feedback}`);

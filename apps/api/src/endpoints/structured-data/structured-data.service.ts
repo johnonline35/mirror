@@ -3,12 +3,14 @@ import { JobManagerService } from '../../job-manager/job-manager.service';
 import { ITask, TaskComponentType } from '../../interfaces/task.interface';
 import { StructuredDataDto } from './dtos/structured-data.dto';
 import { ComponentsRegistryService } from '../../components-registry/components-registry.service';
+import { SqsService } from '../../common/services/aws/sqs/sqs.service';
 
 @Injectable()
 export class StructuredDataService {
   constructor(
     private readonly jobManagerService: JobManagerService,
     private readonly componentsRegistryService: ComponentsRegistryService,
+    private readonly sqsService: SqsService,
   ) {}
 
   async startJobAsync(requestDto: StructuredDataDto, clientId?: string) {
@@ -32,12 +34,9 @@ export class StructuredDataService {
     // Create the job entry and return the jobId immediately
     const job = await this.jobManagerService.createJob(task, clientId);
 
-    // TODO: create job queue (e.g., Bull or Redis Queue).
-    // e.g await this.jobQueue.add('execute', { jobId: job.jobId, task });
-
-    setTimeout(
-      () => this.jobManagerService.executeJobInBackground(job.jobId, task),
-      0,
+    await this.sqsService.sendMessage(
+      process.env.JOB_QUEUE_URL,
+      JSON.stringify({ jobId: job.jobId, task }),
     );
 
     // Return the job ID immediately

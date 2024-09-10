@@ -3,7 +3,7 @@ import { PrismaService } from '../common/services/prisma/prisma.service';
 import { ITask } from '../interfaces/task.interface';
 import { WorkflowService } from '../workflow/workflow.service';
 import { IJobManagerService } from './job-manager-service.interface';
-import { S3ManagerService } from '../common/services/s3-manager/s3-manager.service';
+import { S3ManagerService } from '../common/services/aws/s3-manager/s3-manager.service';
 
 @Injectable()
 export class JobManagerService implements IJobManagerService {
@@ -36,6 +36,7 @@ export class JobManagerService implements IJobManagerService {
   }
 
   async executeJobInBackground(jobId: string, task: ITask): Promise<any> {
+    this.logger.log(`Starting executeJobInBackground with jobId:`, jobId);
     await this.updateJobStatus(jobId, 'in-progress');
     try {
       const result = await this.workflowService.handle(task);

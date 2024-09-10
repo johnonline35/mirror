@@ -15,7 +15,7 @@ const configs = {
     bucketName: 'mirrorapistaging-staticbucket-fdcugfkhfnqh',
   },
   production: {
-    functionName: '', // You'll need to update this when you deploy to production
+    functionName: 'MirrorApiProduction', // You'll need to update this when you deploy to production
     bucketName: 'production-api-lambda-bucket',
   },
 };

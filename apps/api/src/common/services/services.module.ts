@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { ClientService } from './client/client.service';
 import { AuthService } from './auth/auth.service';
 import { ClientController } from './client/client.controller';
-import { S3ManagerModule } from './s3-manager/s3-manager.module';
+import { AWSModule } from './aws/aws.module';
 
 @Module({
-  imports: [S3ManagerModule],
+  imports: [AWSModule],
   controllers: [ClientController],
   providers: [AuthService, ClientService],
-  exports: [AuthService, ClientService, S3ManagerModule],
+  exports: [AuthService, ClientService, AWSModule],
 })
 export class ServicesModule {}

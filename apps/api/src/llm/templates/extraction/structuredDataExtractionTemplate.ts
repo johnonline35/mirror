@@ -20,6 +20,9 @@ This is the raw data that has been extracted, parsed and cleaned from html, and 
 - Plain Text: 
 {{{individualPageDataObject.completePage}}}
 
+- Images:
+{{{individualPageDataObject.imageUrls}}}
+
 Structured Data Extraction:
 1. Assess whether the data the user is looking for can be found, or classified from the raw page data you have been given.
 2. If it can be, then follow the guidleiness for expected output.
