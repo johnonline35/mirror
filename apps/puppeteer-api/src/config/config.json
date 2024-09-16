@@ -1,0 +1,31 @@
+{
+  "retryOptions": {
+    "retries": 10,
+    "factor": 2,
+    "minTimeout": 2000,
+    "maxTimeout": 30000,
+    "logLevel": "verbose"
+  },
+  "proxy": {
+    "services": {
+      "smartProxyResidentialRotating": {
+        "server": "${SMARTPROXY_RESIDENTIAL_ROTATING_SERVER}",
+        "username": "${SMARTPROXY_USERNAME}",
+        "password": "${SMARTPROXY_PASSWORD}",
+        "priority": 1
+      },
+      "otherProxyService": {
+        "server": "otherproxy.server.com:9000",
+        "username": "otherproxy-username",
+        "password": "otherproxy-password",
+        "priority": 2
+      },
+      "myOwnIPRange": {
+        "server": "",
+        "username": "",
+        "password": "",
+        "priority": 3
+      }
+    }
+  }
+}
