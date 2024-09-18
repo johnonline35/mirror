@@ -3,6 +3,7 @@ import { IWorker } from '../workers/common/worker.interface';
 import { ITask } from '../interfaces/task.interface';
 import { WorkerType } from '../workers/common/worker-registry';
 import { WorkersService } from '../workers/workers.service';
+import { LLMOptions } from 'src/llm/llm.interface';
 
 @Injectable()
 export class TaskDispatcherService {
@@ -14,13 +15,19 @@ export class TaskDispatcherService {
     task: ITask,
     workerType: WorkerType,
     additionalData?: any,
+    llmOptions?: LLMOptions,
   ): Promise<any> {
     try {
       const worker = this.getWorkerForType(workerType);
       if (!worker) {
         throw new Error(`No suitable worker found for type ${workerType}`);
       }
-      return await worker.execute(task, additionalData);
+
+      if (llmOptions) {
+        return await worker.execute(task, additionalData, llmOptions);
+      } else {
+        return await worker.execute(task, additionalData);
+      }
     } catch (error) {
       this.logger.error(`Error in dispatchTask: ${error.stack}`);
       throw error;

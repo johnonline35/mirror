@@ -26,24 +26,24 @@ export class CrawlSitePlanningWorker implements IWorker {
     this.state = new WorkerState(task);
     this.state.setInitialized();
     this.logger.log(
-      `Initializing ValidatePromptWorker with task: ${JSON.stringify(task)}`,
+      `Initializing CrawlSitePlanningWorker with task: ${JSON.stringify(task)}`,
     );
   }
 
   async execute(
     task: ITask,
     homepageData: any,
+    llmOptions?: LLMOptions,
   ): Promise<CrawlSitePlanningContext> {
-    this.initializeWorker(task);
+    await this.initializeWorker(task);
     if (!this.state.initialized) {
       throw new Error('Worker not initialized');
     }
-    this.logger.log(`Executing: ${JSON.stringify(task)}`);
+    this.logger.log(`Executing task: ${JSON.stringify(task)}`);
 
     try {
       const siteCrawlPlanTemplate =
         this.templatesService.getSiteCrawlPlanTemplate('2.0');
-      console.log('homepageData:', homepageData);
       const renderedTemplate = siteCrawlPlanTemplate.render({
         task: task,
         homepageData: homepageData,
@@ -51,19 +51,18 @@ export class CrawlSitePlanningWorker implements IWorker {
 
       console.log(`Rendered siteCrawlPlan before submit: ${renderedTemplate}`);
 
-      const llmOptions: LLMOptions = {
-        model: 'gpt-4o-mini-2024-07-18',
-        maxTokens: 1000,
-        temperature: 1,
-      };
+      if (llmOptions) {
+        const initialPlan = await this.openAiService.adapt(
+          renderedTemplate,
+          llmOptions,
+        );
+        console.log(`Received site crawling plan from LLM: ${initialPlan}`);
 
-      const initialPlan: string = await this.openAiService.adapt(
-        renderedTemplate,
-        llmOptions,
-      );
-      console.log(`Received site crawling plan from LLM: ${initialPlan}`);
+        this.state.context.plan = initialPlan as LlmCrawlingPlan;
+      } else {
+        this.logger.log('Skipping LLM service, no llmOptions provided.');
+      }
 
-      this.state.context.plan = initialPlan as LlmCrawlingPlan;
       this.state.setExecuted();
       return this.state.context;
     } catch (error) {
@@ -85,6 +84,83 @@ export class CrawlSitePlanningWorker implements IWorker {
       `Error occurred while processing task ${JSON.stringify(context)}`,
       error.stack,
     );
-    // TODO extra error handling logic: cleanup, notifications, etc.
   }
 }
+
+// @Injectable()
+// @RegisterWorker(WorkerType.CrawlSitePlanningWorker)
+// export class CrawlSitePlanningWorker implements IWorker {
+//   state: WorkerState<CrawlSitePlanningContext & ITask>;
+//   protected readonly logger = new Logger(CrawlSitePlanningWorker.name);
+
+//   constructor(
+//     private readonly templatesService: TemplatesService,
+//     private readonly openAiService: OpenAiService,
+//   ) {}
+
+//   private async initializeWorker(task: ITask): Promise<void> {
+//     this.state = new WorkerState(task);
+//     this.state.setInitialized();
+//     this.logger.log(
+//       `Initializing ValidatePromptWorker with task: ${JSON.stringify(task)}`,
+//     );
+//   }
+
+//   async execute(
+//     task: ITask,
+//     homepageData: any,
+//   ): Promise<CrawlSitePlanningContext> {
+//     this.initializeWorker(task);
+//     if (!this.state.initialized) {
+//       throw new Error('Worker not initialized');
+//     }
+//     this.logger.log(`Executing: ${JSON.stringify(task)}`);
+
+//     try {
+//       const siteCrawlPlanTemplate =
+//         this.templatesService.getSiteCrawlPlanTemplate('2.0');
+//       console.log('homepageData:', homepageData);
+//       const renderedTemplate = siteCrawlPlanTemplate.render({
+//         task: task,
+//         homepageData: homepageData,
+//       });
+
+//       console.log(`Rendered siteCrawlPlan before submit: ${renderedTemplate}`);
+
+//       const llmOptions: LLMOptions = {
+//         model: 'gpt-4o-mini-2024-07-18',
+//         maxTokens: 1000,
+//         temperature: 1,
+//       };
+
+//       const initialPlan: string = await this.openAiService.adapt(
+//         renderedTemplate,
+//         llmOptions,
+//       );
+//       console.log(`Received site crawling plan from LLM: ${initialPlan}`);
+
+//       this.state.context.plan = initialPlan as LlmCrawlingPlan;
+//       this.state.setExecuted();
+//       return this.state.context;
+//     } catch (error) {
+//       this.handleError(error, this.state.context);
+//       throw error;
+//     } finally {
+//       if (this.state) {
+//         this.state.resetState();
+//       }
+//     }
+//   }
+
+//   async handleError(
+//     error: Error,
+//     context: CrawlSitePlanningContext & ITask,
+//   ): Promise<void> {
+//     this.state.setError(error);
+//     this.logger.error(
+//       `Error occurred while processing task ${JSON.stringify(context)}`,
+//       error.stack,
+//     );
+//     // TODO extra error handling logic: cleanup, notifications, etc.
+//   }
+// }

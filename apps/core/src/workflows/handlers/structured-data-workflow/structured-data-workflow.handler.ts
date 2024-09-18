@@ -12,6 +12,7 @@ import {
 } from '../../../tools/crawler/strategies/crawler-strategies/crawler-strategy.interface';
 import { ConcurrentPageDataService } from '../../../common/utils/concurrency/concurrency-handler.service';
 import { JsonExtractionService } from '../../../common/utils/json-extraction-from-text/json-extraction.service';
+import { LLMOptions } from 'src/llm/llm.interface';
 
 @Injectable()
 export class StructuredDataWorkflowHandler implements IWorkflowHandler {
@@ -35,6 +36,11 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
       const promptReview = await this.taskDispatcher.dispatch(
         task,
         WorkerType.ValidatePromptWorker,
+        {
+          model: 'gpt-4o-mini-2024-07-18',
+          maxTokens: 500,
+          temperature: 0.5,
+        } as LLMOptions,
       );
 
       const canCompleteTask =
@@ -55,6 +61,11 @@ export class StructuredDataWorkflowHandler implements IWorkflowHandler {
           task,
           WorkerType.CrawlSitePlanningWorker,
           homepageData,
+          {
+            model: 'gpt-4o-2024-08-06',
+            maxTokens: 1000,
+            temperature: 1,
+          } as LLMOptions,
         );
 
         console.log('siteCrawlPlan', siteCrawlPlan);

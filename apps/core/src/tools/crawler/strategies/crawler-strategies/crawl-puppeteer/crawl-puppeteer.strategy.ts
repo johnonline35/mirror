@@ -7,6 +7,8 @@ import { LambdaService } from '../../../../../lambda/lambda.service';
 export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
   private readonly logger = new Logger(CrawlPuppeteerStrategy.name);
 
+  private readonly lambdaEndpoint = process.env.PUPPETEER_LAMBDA_ENDPOINT;
+
   constructor(private lambdaService: LambdaService) {}
 
   async execute(task: ITask, url?: string): Promise<string> {
@@ -30,12 +32,18 @@ export class CrawlPuppeteerStrategy implements ICrawlerStrategy {
 
   private async crawlUrlWithLambda(url: string): Promise<string> {
     try {
-      const result = await this.lambdaService.invokeLambda(
-        `PuppeteerApiStaging-AnyCatchallHTTPLambda-EJUtt6mngdvz`,
-        { url },
-      );
+      const lambdaFunctionName = this.lambdaEndpoint;
+      if (!lambdaFunctionName) {
+        throw new Error(
+          'PUPPETEER_LAMBDA_ENDPOINT environment variable not set',
+        );
+      }
+
+      const result = await this.lambdaService.invokeLambda(lambdaFunctionName, {
+        url,
+      });
       const resultSnippet = result.html.substring(0, 200);
-      console.log('resultSnippet:', resultSnippet);
+      this.logger.log('resultSnippet:', resultSnippet);
 
       return result.html;
     } catch (error) {

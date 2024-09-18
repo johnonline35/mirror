@@ -27,7 +27,10 @@ export class ValidatePromptWorker implements IWorker {
     );
   }
 
-  async execute(task: ITask): Promise<ValidatePromptContext> {
+  async execute(
+    task: ITask,
+    llmOptions?: LLMOptions,
+  ): Promise<ValidatePromptContext> {
     this.initializeWorker(task);
     if (!this.state.initialized) {
       throw new Error('Worker not initialized');
@@ -43,21 +46,24 @@ export class ValidatePromptWorker implements IWorker {
 
       console.log(`Rendered prompt: ${taskPrompt}`);
 
-      const llmOptions: LLMOptions = {
-        model: 'gpt-4o-mini-2024-07-18',
-        maxTokens: 500,
-        temperature: 0.3,
-      };
+      // const llmOptions: LLMOptions = {
+      //   model: 'gpt-4o-mini-2024-07-18',
+      //   maxTokens: 500,
+      //   temperature: 0.3,
+      // };
+      if (llmOptions) {
+        const promptReview = await this.openAiService.adapt(
+          taskPrompt,
+          llmOptions,
+        );
+        console.log(
+          `Received prompt review from LLM: ${JSON.stringify(promptReview)}`,
+        );
 
-      const promptReview = await this.openAiService.adapt(
-        taskPrompt,
-        llmOptions,
-      );
-      console.log(
-        `Received prompt review from LLM: ${JSON.stringify(promptReview)}`,
-      );
-
-      this.state.context.promptReview = promptReview;
+        this.state.context.promptReview = promptReview;
+      } else {
+        console.log(`No LLMOptions recieved`);
+      }
       this.state.setExecuted();
       return this.state.context;
     } catch (error) {
